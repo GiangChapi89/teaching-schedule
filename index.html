@@ -197,26 +197,38 @@
             }
         }
 
-        // Đăng ký Email
         async function doRegister() {
-            const name = document.getElementById('regFullName').value;
-            const email = document.getElementById('regEmail').value;
-            const pass = document.getElementById('regPassword').value;
+            const name = document.getElementById('regFullName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const pass = document.getElementById('regPassword').value.trim();
+            
             if(!name || !email || !pass) return alert("Vui lòng điền đầy đủ thông tin!");
+            if(pass.length < 6) return alert("Mật khẩu phải có ít nhất 6 ký tự!");
+
             try {
                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                // Cập nhật tên hiển thị
                 await cred.user.updateProfile({ displayName: name });
+                
                 // Lưu Role mặc định là 'user' vào Firestore
                 await db.collection('users').doc(cred.user.uid).set({
                     fullname: name,
                     email: email,
-                    role: 'user',
+                    role: 'user', // Mặc định quyền user
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                alert("Đăng ký thành công!");
+                
+                alert("🎉 Đăng ký thành công! Bạn đã có thể bắt đầu nhập liệu.");
                 toggleAuthModal();
             } catch(e) {
-                alert("Lỗi đăng ký: " + e.message);
+                // Xử lý chi tiết các lỗi từ Firebase
+                let msg = "Lỗi đăng ký: ";
+                if(e.code === 'auth/email-already-in-use') msg += "Email này đã được đăng ký!";
+                else if(e.code === 'auth/invalid-email') msg += "Email không hợp lệ!";
+                else if(e.code === 'auth/weak-password') msg += "Mật khẩu quá yếu (ít nhất 6 ký tự).";
+                else msg += e.message;
+                
+                alert(msg);
             }
         }
 
