@@ -245,32 +245,14 @@
             }
         }
 
-        // Đăng nhập Email
-        async function doLogin() {
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPassword').value;
-            try {
-                await auth.signInWithEmailAndPassword(email, pass);
-                toggleAuthModal();
-            } catch(e) { alert("Lỗi đăng nhập: " + e.message); }
-        }
-
-        // Đăng nhập Google (Dùng Redirect thay vì Popup để tránh lỗi COOP)
+        // Đăng nhập Google (Dùng Redirect)
         document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            // Chuyển hướng trang sang Google để xác thực. Sau khi xác thực xong, 
-            // Firebase sẽ tự động chuyển người dùng quay lại website của bạn.
-            await auth.signInWithRedirect(provider); 
-        });
-
-        // Bắt sự kiện khi người dùng quay lại sau khi đăng nhập Google
-        auth.getRedirectResult().then((result) => {
-            if (result.user) {
-                toggleAuthModal();
-                location.reload(); // Tải lại trang để cập nhật trạng thái đăng nhập
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await auth.signInWithRedirect(provider);
+            } catch (error) {
+                alert("Lỗi chuyển hướng đăng nhập Google: " + error.message);
             }
-        }).catch((error) => {
-            console.error("Lỗi đăng nhập Google:", error);
         });
 
         async function doLogout() {
