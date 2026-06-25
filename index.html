@@ -6,37 +6,68 @@
     <title>📅 Quản lý lịch giảng dạy tuần</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; margin: 0; padding: 20px; }
-        .navbar { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 20px; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1300px; margin: auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         
-        /* Bảng dữ liệu */
-        .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        th { background: #2c3e50; color: white; padding: 12px; text-align: center; }
-        td, th { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        
-        /* Cột nhập liệu dạng Input text */
-        .editable-input {
-            width: 100px;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            text-align: center;
-            background: #fff;
-        }
-        .editable-input:focus { outline: 2px solid #3498db; border-color: transparent; }
-        
-        /* Nút nhập liệu */
-        .btn-submit { background: #27ae60; color: white; border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; margin-top: 5px; }
-        .btn-submit:hover { background: #219a52; }
+        /* Navbar */
+        .navbar { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-radius: 10px; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        .navbar h2 { margin: 0; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .nav-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: 500;}
+        .nav-btn:hover { background: rgba(255,255,255,0.25); }
+        .btn-danger-outline { border-color: #e74c3c; color: #e74c3c; background: transparent; }
+        .btn-danger-outline:hover { background: #e74c3c; color: white; }
 
-        .stat-cell { font-weight: bold; color: #e67e22; }
+        /* Auth Form */
+        #authContainer { max-width: 450px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #3498db; display: none; }
+        .auth-tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+        .auth-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: 600; color: #888; transition: 0.3s; }
+        .auth-tab.active { color: #3498db; border-bottom: 3px solid #3498db; }
+        .auth-form-section { display: none; }
+        .auth-form-section.active { display: block; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .auth-btn { width: 100%; background: #3498db; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 5px; }
+        .auth-btn.google { background: white; color: #555; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .auth-btn.google:hover { background: #f5f5f5; }
+        .auth-divider { text-align: center; border-bottom: 1px solid #eee; line-height: 0.1em; margin: 20px 0 20px; }
+        .auth-divider span { background: white; padding: 0 10px; color: #888; font-size: 14px; }
+
+        /* User View */
+        #appContainer { display: none; }
+        .user-badge { background: #27ae60; padding: 4px 12px; border-radius: 20px; font-size: 12px; color: white; margin-left: 10px; }
+
+        /* Form nhập liệu linh hoạt (Grid Layout) */
+        #myScheduleForm { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .day-block { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; }
+        .day-block h5 { margin: 0 0 10px 0; color: #2c3e50; text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .field-group { margin-bottom: 8px; }
+        .field-group label { display: block; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 2px; }
+        .field-input { width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; box-sizing: border-box; }
         
+        /* Bảng tổng hợp */
+        .table-responsive { overflow-x: auto; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #2c3e50; color: white; padding: 10px; text-align: center; position: sticky; top: 0; }
+        td, th { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .teacher-row td:first-child { font-weight: bold; text-align: left; background: #f1f2f6; }
+        .entry-cell { min-width: 120px; text-align: left; font-size: 13px; }
+        .entry-item { border-bottom: 1px solid #eee; padding: 4px 0; }
+        .total-cell { font-weight: bold; color: #2980b9; }
+        .grand-total-row { background: #34495e; color: white; font-weight: bold; font-size: 15px; }
+        
+        /* Button chung */
+        .btn-save { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 20px; font-size: 16px; width: 100%; }
+        .btn-save:hover { background: #219a52; }
+        .btn-load { background: #f1c40f; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .btn-load:hover { background: #d4ac0d; }
+
         @media (max-width: 768px) {
-            .editable-input { width: 60px; font-size: 12px; }
-            table { font-size: 12px; }
+            .navbar { flex-direction: column; align-items: stretch; text-align: center; }
+            .nav-right { justify-content: center; flex-wrap: wrap; }
+            #myScheduleForm { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) {
+            #myScheduleForm { grid-template-columns: 1fr; }
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -45,267 +76,308 @@
 </head>
 <body>
     <div class="container">
-        <!-- Navbar Đăng nhập -->
+        <!-- Navbar -->
         <div class="navbar">
             <h2>📅 Lịch giảng dạy Tuần hiện tại</h2>
-            <div>
-                <span id="userDisplay" style="margin-right: 15px;">👤 Chưa đăng nhập</span>
-                <button id="loginBtn" onclick="toggleLogin()" class="btn-success" style="padding: 6px 12px; border:none; border-radius: 4px; cursor: pointer;">Đăng nhập</button>
-                <button id="logoutBtn" onclick="doLogout()" style="display:none; background:#e74c3c; color:white; padding: 6px 12px; border:none; border-radius:4px; cursor:pointer;">Đăng xuất</button>
+            <div class="nav-right" id="navRight">
+                <span id="userDisplay" style="font-weight: 500;">👤 Chưa đăng nhập</span>
+                <button class="nav-btn" id="loginToggleBtn" onclick="toggleAuthModal()">🔑 Đăng nhập</button>
+                <button class="nav-btn btn-danger-outline" id="logoutBtn" style="display:none;" onclick="doLogout()">🚪 Đăng xuất</button>
             </div>
         </div>
 
-        <!-- Form Login ẩn hiện -->
-        <div id="loginForm" style="display:none; margin-bottom:20px; padding:20px; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; max-width: 400px;">
-            <h4>Đăng nhập</h4>
-            <input type="email" id="email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
-            <input type="password" id="password" placeholder="Mật khẩu" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
-            <button onclick="doLogin()" style="width:100%; background:#3498db; color:white; padding:10px; border:none; border-radius:4px; cursor:pointer;">Đăng nhập bằng Email</button>
+        <!-- Auth Modal (Login/Register) -->
+        <div id="authContainer">
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">Đăng nhập</div>
+                <div class="auth-tab" onclick="switchAuthTab('register')">Đăng ký</div>
+            </div>
+            
+            <div id="loginSection" class="auth-form-section active">
+                <button class="auth-btn google" id="googleLoginBtn"><img src="https://img.icons8.com/color/24/000000/google-logo.png"> Đăng nhập với Google</button>
+                <div class="auth-divider"><span>hoặc</span></div>
+                <input type="email" id="loginEmail" class="auth-input" placeholder="Email">
+                <input type="password" id="loginPassword" class="auth-input" placeholder="Mật khẩu">
+                <button class="auth-btn" onclick="doLogin()">Đăng nhập bằng Email</button>
+            </div>
+
+            <div id="registerSection" class="auth-form-section">
+                <input type="text" id="regFullName" class="auth-input" placeholder="Họ và tên của bạn">
+                <input type="email" id="regEmail" class="auth-input" placeholder="Email">
+                <input type="password" id="regPassword" class="auth-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)">
+                <button class="auth-btn" onclick="doRegister()">Đăng ký tài khoản</button>
+            </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3>Bảng tổng hợp theo tuần</h3>
-            <button onclick="loadData()" style="background:#f1c40f; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;"><i class="fas fa-sync"></i> Làm mới</button>
-        </div>
+        <!-- App Container (Hiện khi đã đăng nhập) -->
+        <div id="appContainer">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                <h3 style="margin:0;">Bảng tổng hợp theo tuần</h3>
+                <button class="btn-load" onclick="loadData()"><i class="fas fa-sync"></i> Làm mới dữ liệu</button>
+            </div>
 
-        <!-- Bảng Tổng hợp (Nơi mọi người thấy dữ liệu) -->
-        <div id="scheduleTableContainer" class="table-responsive">
-            <p style="text-align: center; color: #888;">Vui lòng đăng nhập để xem và nhập liệu.</p>
+            <div id="scheduleTableContainer" class="table-responsive">
+                <p style="text-align: center; color: #888; padding: 40px 0;">Đang tải dữ liệu...</p>
+            </div>
+
+            <!-- Form nhập liệu của User (Được tạo động dựa trên Config của Admin) -->
+            <div id="myInputSection" style="margin-top: 40px; border-top: 2px dashed #ccc; padding-top: 30px; display:none;">
+                <h4 style="color:#2c3e50; display:flex; align-items:center; gap:10px;">✏️ Cập nhật lịch dạy của tôi <span class="user-badge">Chỉ bạn thấy</span></h4>
+                <p style="color:#666; font-size:14px; margin-bottom:15px;">Điền đầy đủ thông tin vào các ô tương ứng với ngày trong tuần. Bấm <b>"Lưu lịch dạy"</b> để cập nhật lên bảng tổng hợp chung.</p>
+                <div id="myScheduleForm"></div>
+                <button class="btn-save" onclick="saveMyData()">💾 Lưu lịch dạy của tôi</button>
+            </div>
         </div>
     </div>
 
     <script src="schedule-config.js"></script>
     <script>
-        let currentWeek = getCurrentWeek(); // Lấy tuần hiện tại
-        let isLoggedIn = false;
+        // --- AUTH LOGIC ---
+        let currentUser = null;
+        let currentUserRole = 'user'; // Mặc định là user
         let myUserId = null;
 
-        // --- AUTH ---
-        auth.onAuthStateChanged(user => {
-            if(user) {
-                isLoggedIn = true;
+        // Lắng nghe sự thay đổi trạng thái đăng nhập
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
                 myUserId = user.uid;
-                document.getElementById('userDisplay').innerHTML = `👤 ${user.email}`;
-                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('userDisplay').innerHTML = `👤 ${user.displayName || user.email}`;
+                document.getElementById('loginToggleBtn').style.display = 'none';
                 document.getElementById('logoutBtn').style.display = 'inline-block';
-                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                // Kiểm tra Role của user trong Firestore
+                const userDoc = await db.collection('users').doc(myUserId).get();
+                if (userDoc.exists && userDoc.data().role === 'admin') {
+                    currentUserRole = 'admin';
+                    document.getElementById('userDisplay').innerHTML += ` <span style="background:#e67e22;padding:2px 8px;border-radius:4px;font-size:11px;color:white;">Admin</span>`;
+                    
+                    // Nếu là Admin, hiển thị nút đi đến trang Admin
+                    const navRight = document.getElementById('navRight');
+                    const adminLink = document.createElement('a');
+                    adminLink.href = 'admin.html';
+                    adminLink.className = 'nav-btn';
+                    adminLink.innerHTML = '⚙️ Quản trị';
+                    adminLink.style.marginLeft = '10px';
+                    navRight.appendChild(adminLink);
+                } else {
+                    currentUserRole = 'user';
+                }
                 
-                // Tự động tạo cấu trúc người dùng trong DB nếu chưa có
-                createUserRowIfNotExist(user.email);
+                // Kiểm tra xem User đã có dữ liệu trong tuần chưa (Nếu chưa, tạo khung rỗng)
+                await createUserRowIfNotExist();
                 loadData();
             } else {
-                isLoggedIn = false;
+                currentUser = null;
+                currentUserRole = 'user';
                 document.getElementById('userDisplay').innerHTML = '👤 Chưa đăng nhập';
-                document.getElementById('loginBtn').style.display = 'inline-block';
+                document.getElementById('loginToggleBtn').style.display = 'inline-block';
                 document.getElementById('logoutBtn').style.display = 'none';
-                document.getElementById('scheduleTableContainer').innerHTML = '<p style="text-align: center; color: #888;">Vui lòng đăng nhập để xem và nhập liệu.</p>';
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('authContainer').style.display = 'block';
             }
         });
 
-        function toggleLogin() {
-            const form = document.getElementById('loginForm');
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        function toggleAuthModal() {
+            const modal = document.getElementById('authContainer');
+            modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
         }
 
-        async function doLogin() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            try {
-                await auth.signInWithEmailAndPassword(email, pass);
-            } catch(e) {
-                alert("Lỗi đăng nhập: " + e.message);
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.auth-form-section').forEach(el => el.classList.remove('active'));
+            if(tab === 'login') {
+                document.querySelector('.auth-tabs .auth-tab:first-child').classList.add('active');
+                document.getElementById('loginSection').classList.add('active');
+            } else {
+                document.querySelector('.auth-tabs .auth-tab:last-child').classList.add('active');
+                document.getElementById('registerSection').classList.add('active');
             }
         }
+
+        // Đăng ký Email
+        async function doRegister() {
+            const name = document.getElementById('regFullName').value;
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPassword').value;
+            if(!name || !email || !pass) return alert("Vui lòng điền đầy đủ thông tin!");
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                await cred.user.updateProfile({ displayName: name });
+                // Lưu Role mặc định là 'user' vào Firestore
+                await db.collection('users').doc(cred.user.uid).set({
+                    fullname: name,
+                    email: email,
+                    role: 'user',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("Đăng ký thành công!");
+                toggleAuthModal();
+            } catch(e) {
+                alert("Lỗi đăng ký: " + e.message);
+            }
+        }
+
+        // Đăng nhập Email
+        async function doLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                toggleAuthModal();
+            } catch(e) { alert("Lỗi đăng nhập: " + e.message); }
+        }
+
+        // Đăng nhập Google
+        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await auth.signInWithPopup(provider);
+                toggleAuthModal();
+            } catch(e) { alert("Lỗi đăng nhập Google: " + e.message); }
+        });
 
         async function doLogout() {
             await auth.signOut();
+            location.reload();
         }
 
-        // --- LOGIC DỮ LIỆU ---
+        // --- DATA LOGIC ---
+        const currentWeek = getCurrentWeek();
+        let currentColumns = [];
 
-        // 1. Tạo User Row nếu chưa tồn tại trong tuần
-        async function createUserRowIfNotExist(email) {
+        async function createUserRowIfNotExist() {
             const weekRef = db.collection('weeks').doc(`week_${new Date().getFullYear()}_${currentWeek}`);
-            const doc = await weekRef.get();
-            if (!doc.exists) {
+            const weekDoc = await weekRef.get();
+            if (!weekDoc.exists) {
                 await weekRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() });
             }
 
-            // Kiểm tra xem user đã có dữ liệu trong bảng này chưa
             const userRowsRef = weekRef.collection('rows').doc(myUserId);
             const rowDoc = await userRowsRef.get();
             if (!rowDoc.exists) {
-                // Nếu chưa, tạo dữ liệu rỗng
-                await userRowsRef.set({
-                    email: email,
-                    'Thứ 2': {},
-                    'Thứ 3': {},
-                    'Thứ 4': {},
-                    'Thứ 5': {},
-                    'Thứ 6': {},
-                    'Thứ 7': {}
-                });
+                const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+                let initObj = { email: currentUser.email, fullname: currentUser.displayName };
+                days.forEach(day => initObj[day] = {});
+                await userRowsRef.set(initObj);
             }
         }
 
-        // 2. Tải dữ liệu và Render Bảng Thông minh
         async function loadData() {
-            const container = document.getElementById('scheduleTableContainer');
-            container.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>';
+            document.getElementById('scheduleTableContainer').innerHTML = '<p style="text-align:center;">Đang tải...</p>';
 
             try {
-                // Lấy cấu hình cột (Từ Admin)
+                // 1. Lấy Cấu hình Cột do Admin tạo
                 const colConfigDoc = await db.collection('configs').doc('columns').get();
-                const columns = colConfigDoc.data().fields;
+                if (colConfigDoc.exists) {
+                    currentColumns = colConfigDoc.data().fields;
+                } else {
+                    // Nếu chưa có, load mặc định
+                    currentColumns = [ {key:'subject', label:'Môn học'}, {key:'class', label:'Lớp'}, {key:'room', label:'Phòng'}, {key:'slots', label:'Số tiết'} ];
+                }
 
-                // Lấy tất cả giảng viên
-                const usersSnap = await db.collection('users').where('role', '==', 'teacher').get();
-                const teachers = [];
-                usersSnap.forEach(doc => teachers.push({ id: doc.id, ...doc.data() }));
+                // 2. Lấy danh sách Users có role là 'user' hoặc 'admin'
+                const usersSnap = await db.collection('users').where('role', 'in', ['user', 'admin']).get();
+                let users = [];
+                usersSnap.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
 
-                // Lấy dữ liệu bảng của tuần
-                const weekDataRef = db.collection('weeks').doc(`week_${new Date().getFullYear()}_${currentWeek}`).collection('rows');
-                const rowsSnap = await weekDataRef.get();
-                
-                // Map dữ liệu theo ID người dùng
+                // 3. Lấy dữ liệu lịch dạy của tuần
+                const rowsSnap = await db.collection('weeks').doc(`week_${new Date().getFullYear()}_${currentWeek}`).collection('rows').get();
                 let scheduleMap = {};
-                rowsSnap.forEach(doc => {
-                    scheduleMap[doc.id] = doc.data();
-                });
+                rowsSnap.forEach(doc => { scheduleMap[doc.id] = doc.data(); });
 
-                // Bắt đầu render HTML
-                let html = `<table>
-                    <thead>
-                        <tr>
-                            <th rowspan="2" style="width: 150px;">Giảng Viên</th>
-                            ${generateDayColumns(columns)}
-                        </tr>
-                    </thead>
-                    <tbody>`;
-
-                let grandTotals = {}; // Để thống kê tổng tiết theo ngày
-
-                teachers.forEach(teacher => {
-                    const userData = scheduleMap[teacher.id] || {};
-                    html += `<tr>`;
-                    html += `<td style="text-align:left; font-weight:bold; background:#f1f2f6;">${teacher.fullname}</td>`;
-                    
-                    let lecturerTotal = 0;
-
-                    // Duyệt qua các ngày (Thứ 2 đến Thứ 7)
-                    const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-                    days.forEach(day => {
-                        const dayData = userData[day] || {};
-
-                        // Hiển thị dữ liệu có sẵn (Chế độ READ ONLY)
-                        let displayHtml = '';
-                        let dayTotal = 0;
-
-                        // Duyệt qua các cột dữ liệu
-                        columns.forEach(col => {
-                            let val = dayData[col.key];
-                            if(val) {
-                                displayHtml += `<div style="font-size: 13px; border-bottom: 1px solid #eee; padding: 2px 0;">
-                                    <strong>${col.label}:</strong> ${val}
-                                </div>`;
-                                if(col.key === 'slots') dayTotal += parseInt(val) || 0;
-                            }
-                        });
-
-                        if(!displayHtml) displayHtml = '<span style="color:#ccc; font-size:12px;">(Trống)</span>';
-                        lecturerTotal += dayTotal;
-
-                        // Cộng vào tổng chung
-                        if(!grandTotals[day]) grandTotals[day] = 0;
-                        grandTotals[day] += dayTotal;
-
-                        html += `<td style="vertical-align: top; min-width: 150px;">
-                            ${displayHtml}
-                            <hr style="margin: 5px 0;">
-                            <div style="font-size: 11px; color: #e67e22;">Tổng: ${dayTotal} tiết</div>
-                        </td>`;
-                    });
-
-                    html += `<td style="font-weight:bold; color:#2980b9; font-size:16px;">${lecturerTotal}</td>`;
-                    html += `</tr>`;
-                });
-
-                // Dòng Tổng kết cuối bảng
-                html += `<tr style="background: #34495e; color: white; font-weight: bold;">`;
-                html += `<td style="text-align:right;">TỔNG HỢP</td>`;
-                let finalTotal = 0;
-                const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-                days.forEach(day => {
-                    const t = grandTotals[day] || 0;
-                    finalTotal += t;
-                    html += `<td style="font-size: 16px;">${t}</td>`;
-                });
-                html += `<td style="font-size: 18px;">${finalTotal}</td>`;
-                html += `</tr>`;
-
-                html += `</tbody></table>`;
-
-                // Nếu người dùng đã đăng nhập, hiển thị nút "Nhập dữ liệu" ở phía trên
-                if(isLoggedIn) {
-                    const myData = scheduleMap[myUserId] || {};
-                    html += `
-                    <div style="margin-top: 30px; padding: 20px; background: #f1f8e9; border: 1px solid #c5e1a5; border-radius: 8px;">
-                        <h4>✏️ Cập nhật lịch dạy của tôi <small style="font-weight:normal; font-size:14px; color:#666;">(Dữ liệu bạn nhập sẽ tự động lưu)</small></h4>
-                        <div id="myInputForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 10px;">
-                            <!-- Form sẽ được JS render để nhập liệu dựa trên columns config -->
-                        </div>
-                        <button onclick="saveMyData()" class="btn-submit">💾 Lưu lịch của tôi</button>
-                    </div>`;
-                }
-
-                container.innerHTML = html;
-
-                // Render Form nhập liệu cho người dùng hiện tại (Chỉ hiện khi đã đăng nhập)
-                if(isLoggedIn) {
-                    const myData = scheduleMap[myUserId] || {};
-                    renderMyInputForm(myData, columns);
-                }
-
+                renderTable(users, scheduleMap);
+                renderMyForm();
+                
             } catch(e) {
-                container.innerHTML = `<p style="color:red; text-align:center;">Lỗi tải dữ liệu: ${e.message}</p>`;
+                document.getElementById('scheduleTableContainer').innerHTML = `<p style="color:red;">Lỗi: ${e.message}</p>`;
             }
         }
 
-        // Hàm tạo Header cột
-        function generateDayColumns(columns) {
-            let html = '';
+        // Hiển thị Bảng tổng hợp
+        function renderTable(users, scheduleMap) {
+            const container = document.getElementById('scheduleTableContainer');
             const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-            days.forEach(day => {
-                html += `<th style="width: 150px;">${day}</th>`;
+            
+            let html = `<table>
+                <thead><tr>
+                    <th style="min-width:150px;">Giảng Viên</th>
+                    ${days.map(d => `<th>${d}</th>`).join('')}
+                    <th>Tổng tiết</th>
+                </tr></thead>
+                <tbody>`;
+
+            let grandTotals = {};
+
+            users.forEach(user => {
+                const userData = scheduleMap[user.id] || {};
+                html += `<tr class="teacher-row"><td>${user.fullname || 'GV ẩn danh'}</td>`;
+                let lecturerTotal = 0;
+
+                days.forEach(day => {
+                    const dayData = userData[day] || {};
+                    let displayHtml = '';
+                    let dayTotal = 0;
+
+                    // Duyệt qua các cột
+                    currentColumns.forEach(col => {
+                        const val = dayData[col.key];
+                        if(val) {
+                            displayHtml += `<div class="entry-item"><b>${col.label}:</b> ${val}</div>`;
+                            if(col.key === 'slots') dayTotal += parseInt(val) || 0;
+                        }
+                    });
+
+                    if(!displayHtml) displayHtml = '<span style="color:#ccc;">-</span>';
+                    lecturerTotal += dayTotal;
+                    
+                    // Tổng hợp cho dòng cuối
+                    if(!grandTotals[day]) grandTotals[day] = 0;
+                    grandTotals[day] += dayTotal;
+
+                    html += `<td class="entry-cell">${displayHtml}<div style="margin-top:5px;font-size:11px;color:#e67e22;">Tổng: ${dayTotal}</div></td>`;
+                });
+                html += `<td class="total-cell">${lecturerTotal}</td></tr>`;
             });
-            html += `<th style="width: 80px;">Tổng Tiết</th>`;
-            return html;
+
+            // Dòng Tổng kết
+            html += `<tr class="grand-total-row"><td>TỔNG CỘNG</td>`;
+            let finalTotal = 0;
+            days.forEach(day => {
+                const t = grandTotals[day] || 0;
+                finalTotal += t;
+                html += `<td>${t}</td>`;
+            });
+            html += `<td>${finalTotal}</td></tr>`;
+            html += `</tbody></table>`;
+
+            container.innerHTML = html;
         }
 
-        // Hàm render Form nhập liệu (Input fields) cho người dùng
-        function renderMyInputForm(currentData, columns) {
-            const formContainer = document.getElementById('myInputForm');
-            let html = '';
+        // Render Form nhập liệu cho User
+        function renderMyForm() {
+            const section = document.getElementById('myInputSection');
+            // Chỉ hiện form nhập liệu nếu là user bình thường (không phải admin)
+            if(currentUserRole === 'admin') {
+                section.style.display = 'none';
+                return;
+            }
             
+            section.style.display = 'block';
+            const formContainer = document.getElementById('myScheduleForm');
             const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+            
+            let html = '';
             days.forEach(day => {
-                const dayData = currentData[day] || {};
-                html += `<div style="border:1px solid #ccc; padding:15px; border-radius:8px; background:white;">
-                    <h5 style="margin-top:0; text-align:center; color:#2c3e50;">${day}</h5>`;
-                
-                columns.forEach(col => {
-                    // Tạo ID duy nhất cho input: Ex: input_Thứ 2_subject
-                    const val = dayData[col.key] || '';
+                html += `<div class="day-block">
+                    <h5>${day}</h5>`;
+                currentColumns.forEach(col => {
                     html += `
-                    <div style="margin-bottom: 8px;">
-                        <label style="font-size:12px; font-weight:bold; display:block;">${col.label}</label>
-                        ${col.type === 'select' 
-                            ? `<select id="input_${day}_${col.key}" class="editable-input" style="width:100%;">
-                                <option value="">-- Chọn --</option>
-                                ${col.options.map(opt => `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`).join('')}
-                               </select>`
-                            : `<input type="${col.type}" id="input_${day}_${col.key}" class="editable-input" style="width:100%;" value="${val}" placeholder="${col.label}">`
-                        }
+                    <div class="field-group">
+                        <label>${col.label}</label>
+                        <input type="text" class="field-input" id="input_${day}_${col.key}" placeholder="Nhập ${col.label.toLowerCase()}">
                     </div>`;
                 });
                 html += `</div>`;
@@ -313,33 +385,29 @@
             formContainer.innerHTML = html;
         }
 
-        // Hàm Lưu dữ liệu
+        // Lưu dữ liệu của User
         async function saveMyData() {
-            if(!isLoggedIn) return alert("Bạn chưa đăng nhập!");
+            if(!currentUser) return;
             
-            const columnsSnap = await db.collection('configs').doc('columns').get();
-            const columns = columnsSnap.data().fields;
             const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-            
             let updateData = {};
 
             days.forEach(day => {
                 let dayObj = {};
-                columns.forEach(col => {
-                    const inputId = `input_${day}_${col.key}`;
-                    const el = document.getElementById(inputId);
-                    if(el) dayObj[col.key] = el.value;
+                currentColumns.forEach(col => {
+                    const val = document.getElementById(`input_${day}_${col.key}`).value;
+                    if(val) dayObj[col.key] = val;
                 });
                 updateData[day] = dayObj;
             });
 
             try {
-                const weekRef = db.collection('weeks').doc(`week_${new Date().getFullYear()}_${currentWeek}`).collection('rows').doc(myUserId);
-                await weekRef.update(updateData);
+                const rowRef = db.collection('weeks').doc(`week_${new Date().getFullYear()}_${currentWeek}`).collection('rows').doc(myUserId);
+                await rowRef.update(updateData);
                 alert("✅ Đã lưu lịch dạy thành công!");
-                loadData(); // Refresh lại bảng tổng hợp để người khác thấy
+                loadData(); // Làm mới bảng tổng hợp
             } catch(e) {
-                alert("Lỗi lưu: " + e.message);
+                alert("Lỗi lưu dữ liệu: " + e.message);
             }
         }
     </script>

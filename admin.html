@@ -6,16 +6,21 @@
     <title>⚙️ Quản trị Lịch giảng dạy</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* (Copy CSS cơ bản từ admin.html cũ, chỉnh lại màu sắc cho phù hợp) */
         body { font-family: sans-serif; background: #f4f6f9; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { color: #333; display: flex; align-items: center; gap: 10px; }
-        input, select, button { padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; margin: 5px; }
-        button { background: #007bff; color: white; border: none; cursor: pointer; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
-        .btn-danger { background: #dc3545; }
-        .btn-success { background: #28a745; }
-        .list-item { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1, h3 { color: #2c3e50; }
+        .flex-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-end; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        button { padding: 10px 20px; border: none; border-radius: 6px; background: #3498db; color: white; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; }
+        .btn-success { background: #27ae60; }
+        
+        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        
+        .table-builder { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #ddd; }
+        .col-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 10px; }
+        .col-row input, .col-row select { width: 100%; }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -23,129 +28,121 @@
 </head>
 <body>
     <div class="container">
-        <h1>⚙️ Quản lý hệ thống lịch giảng dạy</h1>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h1>⚙️ Quản trị Hệ thống</h1>
+            <button onclick="doLogout()" class="btn-danger">Đăng xuất</button>
+        </div>
         
         <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <p><i class="fas fa-info-circle"></i> Bạn cần tạo tài khoản cho các Giảng viên. Họ sẽ dùng Email/Mật khẩu này để đăng nhập nhập liệu.</p>
+            <p><i class="fas fa-info-circle"></i> Đây là trang quản trị. Bạn có thể tạo và quản lý các cột dữ liệu cho bảng lịch giảng dạy.</p>
         </div>
 
-        <!-- 1. Quản lý Giảng viên -->
-        <h3>👨‍🏫 Danh sách Giảng viên</h3>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
-            <input type="text" id="teacherName" placeholder="Họ và tên GV">
-            <input type="email" id="teacherEmail" placeholder="Email đăng nhập">
-            <input type="password" id="teacherPass" placeholder="Mật khẩu">
-            <button onclick="createTeacher()" class="btn-success"><i class="fas fa-plus"></i> Thêm GV</button>
+        <h3>📋 Cấu trúc bảng hiện tại</h3>
+        <div id="currentColumnsDisplay" style="background:#eee; padding:15px; border-radius:6px; margin-bottom:20px;">
+            Chưa có cấu trúc nào. Hãy tạo mới bên dưới.
         </div>
-        <div id="teacherList"></div>
 
-        <hr style="margin: 30px 0;">
-
-        <!-- 2. Tạo dữ liệu mẫu (Cấu trúc bảng) -->
-        <h3>📅 Thiết lập cấu trúc bảng (Mẫu)</h3>
-        <p><i>Hệ thống sẽ tự động tạo bảng rỗng cho các ngày trong tuần hiện tại.</i></p>
-        <button onclick="setupDefaultTemplate()" class="btn-primary"><i class="fas fa-table"></i> Tạo Bảng Mẫu (Thứ 2 - 7, Tiết I, II, III)</button>
-        
-        <div id="statusMsg" style="margin-top: 20px; font-weight: bold; color: green;"></div>
+        <div class="table-builder">
+            <h4><i class="fas fa-plus-circle"></i> Tạo / Cập nhật Cấu trúc Bảng</h4>
+            <p style="font-size:14px; color:#666;">Thêm các cột mà giảng viên cần nhập cho mỗi ngày trong tuần (Ví dụ: Môn học, Lớp, Phòng, Số tiết...).</p>
+            <div id="columnsBuilder">
+                <div class="col-row">
+                    <input type="text" placeholder="Tên cột hiển thị (VD: Môn học)" class="col-label">
+                    <input type="text" placeholder="Key dữ liệu (VD: subject)" class="col-key">
+                    <select class="col-type"><option value="text">Text</option><option value="number">Number</option></select>
+                    <button class="btn-danger" onclick="removeColumn(this)"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+            <button class="btn-success" style="margin-top:10px;" onclick="addColumnRow()"><i class="fas fa-plus"></i> Thêm dòng cột mới</button>
+            <br>
+            <button style="margin-top:20px; width:100%; background:#2c3e50;" onclick="saveColumnsConfig()">💾 Lưu cấu trúc bảng này</button>
+        </div>
     </div>
 
     <script src="schedule-config.js"></script>
     <script>
-        // Kiểm tra quyền Admin (Giả lập: Chỉ user hiện tại là Admin)
-        // Trong thực tế, bạn nên lưu role 'admin' trong Firestore user document
-        auth.onAuthStateChanged(user => {
+        auth.onAuthStateChanged(async user => {
             if(!user) {
                 alert("Vui lòng đăng nhập bằng tài khoản Admin!");
-                window.location.href = "index.html";
+                window.location.href = "index.html"; 
+                return;
+            }
+            // Kiểm tra quyền Admin
+            const doc = await db.collection('users').doc(user.uid).get();
+            if(!doc.exists || doc.data().role !== 'admin') {
+                 alert("Bạn không có quyền truy cập trang quản trị!");
+                 window.location.href = "index.html";
+            } else {
+                loadConfig();
             }
         });
 
-        // 1. Tạo Giảng viên
-        async function createTeacher() {
-            const name = document.getElementById('teacherName').value;
-            const email = document.getElementById('teacherEmail').value;
-            const pass = document.getElementById('teacherPass').value;
-            if(!name || !email || !pass) return alert("Vui lòng điền đầy đủ thông tin!");
+        async function doLogout() {
+            await auth.signOut();
+            window.location.href = "index.html";
+        }
 
-            try {
-                // Lưu vào Firestore
-                await db.collection('users').add({
-                    fullname: name,
-                    email: email,
-                    role: 'teacher',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        function addColumnRow() {
+            const container = document.getElementById('columnsBuilder');
+            const row = document.createElement('div');
+            row.className = 'col-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Tên cột hiển thị" class="col-label">
+                <input type="text" placeholder="Key dữ liệu" class="col-key">
+                <select class="col-type"><option value="text">Text</option><option value="number">Number</option></select>
+                <button class="btn-danger" onclick="removeColumn(this)"><i class="fas fa-trash"></i></button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeColumn(btn) {
+            btn.parentElement.remove();
+        }
+
+        async function saveColumnsConfig() {
+            const rows = document.querySelectorAll('.col-row');
+            let fields = [];
+            rows.forEach(row => {
+                const label = row.querySelector('.col-label').value;
+                const key = row.querySelector('.col-key').value;
+                const type = row.querySelector('.col-type').value;
+                if(label && key) {
+                    fields.push({ key: key.trim(), label: label.trim(), type: type });
+                }
+            });
+
+            if(fields.length === 0) return alert("Vui lòng thêm ít nhất 1 cột dữ liệu!");
+
+            await db.collection('configs').doc('columns').set({ fields: fields });
+            alert("✅ Đã lưu cấu trúc bảng thành công! Người dùng sẽ thấy form nhập liệu mới ngay lập tức.");
+            loadConfig();
+        }
+
+        async function loadConfig() {
+            const doc = await db.collection('configs').doc('columns').get();
+            const display = document.getElementById('currentColumnsDisplay');
+            if(doc.exists) {
+                const data = doc.data().fields;
+                display.innerHTML = `<strong>Các cột hiện có:</strong> ${data.map(d => `"${d.label}"`).join(', ')}`;
+                
+                // Load các dòng vào builder
+                const container = document.getElementById('columnsBuilder');
+                container.innerHTML = '';
+                data.forEach(col => {
+                    const row = document.createElement('div');
+                    row.className = 'col-row';
+                    row.innerHTML = `
+                        <input type="text" value="${col.label}" class="col-label">
+                        <input type="text" value="${col.key}" class="col-key">
+                        <select class="col-type"><option value="text" ${col.type==='text'?'selected':''}>Text</option><option value="number" ${col.type==='number'?'selected':''}>Number</option></select>
+                        <button class="btn-danger" onclick="removeColumn(this)"><i class="fas fa-trash"></i></button>
+                    `;
+                    container.appendChild(row);
                 });
-                
-                // (Tùy chọn) Bạn có thể dùng Admin SDK để tạo Auth user, nhưng ở client-side
-                // chúng ta sẽ tạo Auth user bằng cách đăng ký thủ công hoặc để người dùng tự đăng ký.
-                // Ở đây mình dùng cách lưu thông tin vào DB, và giảng viên đăng nhập bằng Email/Pass.
-                
-                document.getElementById('teacherName').value = '';
-                document.getElementById('teacherEmail').value = '';
-                document.getElementById('teacherPass').value = '';
-                loadTeachers();
-                alert("Đã thêm giảng viên!");
-            } catch (e) {
-                alert("Lỗi: " + e.message);
+            } else {
+                display.innerHTML = '<span style="color:#888;">Chưa có cấu trúc nào.</span>';
             }
         }
-
-        // 2. Load danh sách GV
-        async function loadTeachers() {
-            const container = document.getElementById('teacherList');
-            container.innerHTML = '<p>Đang tải...</p>';
-            
-            const snapshot = await db.collection('users').where('role', '==', 'teacher').get();
-            container.innerHTML = '';
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                container.innerHTML += `
-                    <div class="list-item">
-                        <div><strong>${data.fullname}</strong> <br> <span style="color:#777;font-size:0.9em;">${data.email}</span></div>
-                        <button class="btn-danger btn-sm" onclick="deleteTeacher('${doc.id}')"><i class="fas fa-trash"></i></button>
-                    </div>
-                `;
-            });
-        }
-
-        async function deleteTeacher(id) {
-            if(confirm("Xóa giảng viên này?")) {
-                await db.collection('users').doc(id).delete();
-                loadTeachers();
-            }
-        }
-
-        // 3. Thiết lập Bảng mẫu
-        async function setupDefaultTemplate() {
-            const currentWeek = getCurrentWeek();
-            const year = new Date().getFullYear();
-            const weekDocId = `week_${year}_${currentWeek}`;
-
-            // Định nghĩa các cột trong bảng (Giống như bạn yêu cầu)
-            const columnsTemplate = [
-                { key: 'day', label: 'Thứ', type: 'select', options: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'] },
-                { key: 'period', label: 'Cặp tiết', type: 'select', options: ['I', 'II', 'III', 'IV'] },
-                { key: 'subject', label: 'Môn học', type: 'text' },
-                { key: 'class', label: 'Lớp học', type: 'text' },
-                { key: 'room', label: 'Phòng học', type: 'text' },
-                { key: 'type', label: 'Loại tiết', type: 'select', options: ['Lý thuyết', 'Ôn tập', 'Kiểm tra', 'Thi kết thúc'] },
-                { key: 'examiner', label: 'Giám thị coi thi', type: 'text' },
-                { key: 'slots', label: 'Số lượng tiết (Tổng)', type: 'number' }
-            ];
-
-            // Lưu cấu hình này vào Firestore
-            await db.collection('configs').doc('columns').set({ fields: columnsTemplate });
-            await db.collection('weeks').doc(weekDocId).set({
-                year: year,
-                week: currentWeek,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            document.getElementById('statusMsg').innerText = `✅ Đã tạo cấu trúc bảng mẫu cho Tuần ${currentWeek}. Giảng viên có thể bắt đầu nhập liệu.`;
-        }
-
-        // Load GV khi mở trang
-        loadTeachers();
     </script>
 </body>
 </html>
