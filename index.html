@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 Quản lý lịch giảng dạy tuần</title>
+    
+    <!-- Script chặn cache trình duyệt để tải code mới ngay lập tức -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
@@ -62,6 +68,8 @@
             #myScheduleForm { grid-template-columns: 1fr; }
         }
     </style>
+    
+    <!-- Import Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -73,7 +81,6 @@
             <div class="nav-right" id="navRight">
                 <span id="userDisplay" style="font-weight: 500; display:flex; align-items:center; gap:8px;">
                     👤 Chưa đăng nhập
-                    <!-- Nút đổi tên (ẩn khi chưa đăng nhập) -->
                     <button id="changeNameBtn" onclick="openChangeNameModal()" style="display:none; background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 10px; border-radius:4px; font-size:12px; cursor:pointer;">✏️</button>
                 </span>
                 <button class="nav-btn" id="loginToggleBtn" onclick="toggleAuthModal()">🔑 Đăng nhập</button>
@@ -141,6 +148,7 @@
         const currentWeek = getCurrentWeek();
 
         // --- 2. CÁC HÀM GIAO DIỆN ---
+        // Hàm này phải được khai báo trước HTML mới dùng được
         function toggleAuthModal() {
             const modal = document.getElementById('authContainer');
             if (!modal) return; 
@@ -191,6 +199,7 @@
                     document.getElementById('loginPassword').value.trim()
                 ); 
                 toggleAuthModal(); 
+                location.reload();
             } catch(e) {
                 let msg = "❌ Lỗi: ";
                 if(e.code === 'auth/wrong-password') msg += "Sai mật khẩu.";
@@ -209,6 +218,7 @@
             }
         }
 
+        // Xử lý Redirect Google
         auth.getRedirectResult().then((result) => {
             if (result.user) location.reload();
         }).catch((error) => {
@@ -223,9 +233,7 @@
                 currentUser = user;
                 myUserId = user.uid;
                 document.getElementById('userDisplay').innerHTML = `👤 ${user.displayName || user.email}`;
-                
-                // ✅ SỬA LỖI: Dùng dấu ?. để an toàn khi DOM chưa load xong
-                document.getElementById('changeNameBtn')?.style.display = 'inline-block';
+                document.getElementById('changeNameBtn').style.display = 'inline-block';
                 
                 document.getElementById('loginToggleBtn').style.display = 'none';
                 document.getElementById('logoutBtn').style.display = 'inline-block';
@@ -262,9 +270,7 @@
                 currentUser = null;
                 currentUserRole = 'user';
                 document.getElementById('userDisplay').innerHTML = '👤 Chưa đăng nhập';
-                
-                // ✅ SỬA LỖI: Dùng dấu ?. cho cả khi đăng xuất
-                document.getElementById('changeNameBtn')?.style.display = 'none';
+                document.getElementById('changeNameBtn').style.display = 'none';
                 
                 document.getElementById('loginToggleBtn').style.display = 'inline-block';
                 document.getElementById('logoutBtn').style.display = 'none';
@@ -312,8 +318,7 @@
                 let lecturerTotal = 0;
 
                 days.forEach(day => {
-                    // ✅ SỬA LỖI: Khôi phục 3 dòng khai báo biến bị thiếu
-                    const dayArr = userData[day] || []; // Đây là mảng các cặp tiết
+                    const dayArr = userData[day] || []; 
                     let displayHtml = '';
                     let dayTotal = 0;
 
@@ -321,7 +326,7 @@
                         dayArr.forEach(entry => {
                             if(entry.period && entry.subject) {
                                 displayHtml += `<div class="entry-item"><b>[Cặp ${entry.period}]</b> ${entry.subject}<br><span style="font-size:12px; color:#666;">Lớp: ${entry.class || '-'} - Phòng: ${entry.room || '-'}</span></div>`;
-                                dayTotal += 2; // 1 cặp = 2 tiết
+                                dayTotal += 2; 
                             }
                         });
                     }
@@ -346,7 +351,7 @@
 
         async function renderMyForm() {
             const section = document.getElementById('myInputSection');
-            section.style.display = 'block'; // Admin/Super Admin vẫn thấy form
+            section.style.display = 'block'; 
 
             const doc = await db.collection('configs').doc('master_data').get();
             if(doc.exists) globalCatalogs = doc.data();
