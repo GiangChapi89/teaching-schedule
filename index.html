@@ -276,20 +276,29 @@
             }
         }
 
-        // Đăng nhập Google (Sử dụng Popup, có dự phòng Redirect)
-        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+        // ĐĂNG NHẬP GOOGLE (Dùng POPUP để tránh lỗi COOP)
+        document.getElementById('googleLoginBtn').addEventListener('click', async (e) => {
+            e.preventDefault(); // Chặn hành vi mặc định
             const provider = new firebase.auth.GoogleAuthProvider();
+            
             try {
-                // Thử đăng nhập bằng Popup trước (Thường chạy mượt trên Vercel)
+                // Dùng Popup thay vì Redirect
                 const result = await auth.signInWithPopup(provider);
-                // Đăng nhập thành công
-                toggleAuthModal();
-                location.reload();
+                if (result.user) {
+                    console.log("Đăng nhập Google thành công:", result.user.email);
+                    // Reload lại trang sau khi đăng nhập để giao diện cập nhật
+                    location.reload();
+                }
             } catch (error) {
-                // Nếu bị trình duyệt chặn Popup (Lỗi Cross-Origin), tự động chuyển sang Redirect
-                if (error.code === 'auth/cross-origin-auth') {
-                    console.log("Trình duyệt chặn Popup, đang chuyển sang Redirect...");
-                    await auth.signInWithRedirect(provider);
+                // Xử lý các lỗi popup
+                if (error.code === 'auth/cross-origin-auth' || error.code === 'auth/popup-blocked') {
+                    // Nếu trình duyệt chặn popup, chuyển sang dùng Redirect dự phòng
+                    console.log("Popup bị chặn, chuyển sang Redirect...");
+                    try {
+                        await auth.signInWithRedirect(provider);
+                    } catch (redirectError) {
+                        alert("Lỗi đăng nhập Google (dù đã thử Redirect): " + redirectError.message);
+                    }
                 } else {
                     alert("Lỗi đăng nhập Google: " + error.message);
                 }
