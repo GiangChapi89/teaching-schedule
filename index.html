@@ -216,13 +216,16 @@
 
         async function doLogout() { await auth.signOut(); location.reload(); }
 
-        // --- 4. AUTH STATE CHANGED ---
+        // --- 4. AUTH STATE CHANGED ---      
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
                 myUserId = user.uid;
                 document.getElementById('userDisplay').innerHTML = `👤 ${user.displayName || user.email}`;
-                document.getElementById('changeNameBtn').style.display = 'inline-block';
+                
+                // ✅ SỬA LỖI: Dùng dấu ?. để an toàn khi DOM chưa load xong
+                document.getElementById('changeNameBtn')?.style.display = 'inline-block';
+                
                 document.getElementById('loginToggleBtn').style.display = 'none';
                 document.getElementById('logoutBtn').style.display = 'inline-block';
                 document.getElementById('authContainer').style.display = 'none';
@@ -258,7 +261,10 @@
                 currentUser = null;
                 currentUserRole = 'user';
                 document.getElementById('userDisplay').innerHTML = '👤 Chưa đăng nhập';
-                document.getElementById('changeNameBtn').style.display = 'none';
+                
+                // ✅ SỬA LỖI: Dùng dấu ?. cho cả khi đăng xuất
+                document.getElementById('changeNameBtn')?.style.display = 'none';
+                
                 document.getElementById('loginToggleBtn').style.display = 'inline-block';
                 document.getElementById('logoutBtn').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'none';
