@@ -347,15 +347,21 @@
         async function renderMyForm() {
             const section = document.getElementById('myInputSection');
             section.style.display = 'block'; 
+
             const doc = await db.collection('configs').doc('master_data').get();
             if(doc.exists) globalCatalogs = doc.data();
+
             const formContainer = document.getElementById('myScheduleForm');
-            const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+            // ✅ SỬA LỖI: Dùng tên không dấu cách để làm ID
+            const days = ['Thu_2', 'Thu_3', 'Thu_4', 'Thu_5', 'Thu_6', 'Thu_7'];
             const periods = ['I', 'II', 'III', 'IV'];
+
             let html = '';
             days.forEach(day => {
+                // Để hiển thị tên ngày đẹp cho người dùng, chúng ta map tên hiển thị
+                let displayDay = day.replace('_', ' ').replace('Thu', 'Thứ');
                 html += `<div class="day-block" id="block_${day}">
-                    <h5>${day} <button class="btn-sm btn-primary" onclick="addPeriodRow('${day}')" style="padding:2px 10px; font-size:12px;">+ Thêm cặp</button></h5>
+                    <h5>${displayDay} <button class="btn-sm btn-primary" onclick="addPeriodRow('${day}')" style="padding:2px 10px; font-size:12px;">+ Thêm cặp</button></h5>
                     <div class="period-rows-container">
                         <div class="period-row">
                             <div class="row" style="display:flex; flex-wrap:wrap; gap:5px;">
@@ -404,6 +410,7 @@
             }
         }
         function addPeriodRow(day) {
+            // ✅ SỬA LỖI: Dùng template string dạng `#block_${day}`
             const container = document.querySelector(`#block_${day} .period-rows-container`);
             const firstRow = container.querySelector('.period-row');
             const clone = firstRow.cloneNode(true);
@@ -419,8 +426,10 @@
 
         async function saveMyData() {
             if(!currentUser) return;
-            const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+            // ✅ SỬA LỖI: Mảng ngày phải khớp với ID mới
+            const days = ['Thu_2', 'Thu_3', 'Thu_4', 'Thu_5', 'Thu_6', 'Thu_7'];
             let updateData = {};
+
             days.forEach(day => {
                 const rows = document.querySelectorAll(`#block_${day} .period-row`);
                 let dayArray = [];
