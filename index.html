@@ -230,13 +230,22 @@
             } catch(e) { alert("Lỗi đăng nhập: " + e.message); }
         }
 
-        // Đăng nhập Google
+        // Đăng nhập Google (Dùng Redirect thay vì Popup để tránh lỗi COOP)
         document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                await auth.signInWithPopup(provider);
+            const provider = new firebase.auth.GoogleAuthProvider();
+            // Chuyển hướng trang sang Google để xác thực. Sau khi xác thực xong, 
+            // Firebase sẽ tự động chuyển người dùng quay lại website của bạn.
+            await auth.signInWithRedirect(provider); 
+        });
+
+        // Bắt sự kiện khi người dùng quay lại sau khi đăng nhập Google
+        auth.getRedirectResult().then((result) => {
+            if (result.user) {
                 toggleAuthModal();
-            } catch(e) { alert("Lỗi đăng nhập Google: " + e.message); }
+                location.reload(); // Tải lại trang để cập nhật trạng thái đăng nhập
+            }
+        }).catch((error) => {
+            console.error("Lỗi đăng nhập Google:", error);
         });
 
         async function doLogout() {
