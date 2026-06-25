@@ -197,38 +197,51 @@
             }
         }
 
+        // Đăng ký Email
         async function doRegister() {
             const name = document.getElementById('regFullName').value.trim();
             const email = document.getElementById('regEmail').value.trim();
             const pass = document.getElementById('regPassword').value.trim();
             
-            if(!name || !email || !pass) return alert("Vui lòng điền đầy đủ thông tin!");
-            if(pass.length < 6) return alert("Mật khẩu phải có ít nhất 6 ký tự!");
+            // Kiểm tra đầu vào
+            if(!name || !email || !pass) return alert("Vui lòng điền đầy đủ họ tên, email và mật khẩu!");
+            
+            // ⚠️ LƯU Ý: Firebase yêu cầu mật khẩu tối thiểu 6 ký tự, nếu dưới 6 ký tự sẽ bị lỗi 400 mơ hồ
+            if(pass.length < 6) {
+                return alert("❌ Mật khẩu phải có ít nhất 6 ký tự!");
+            }
 
             try {
+                // 1. Tạo tài khoản trên Firebase Auth
                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
-                // Cập nhật tên hiển thị
+                
+                // 2. Cập nhật tên hiển thị cho user
                 await cred.user.updateProfile({ displayName: name });
                 
-                // Lưu Role mặc định là 'user' vào Firestore
+                // 3. Lưu thông tin chi tiết vào Firestore database (để phân quyền)
                 await db.collection('users').doc(cred.user.uid).set({
                     fullname: name,
                     email: email,
-                    role: 'user', // Mặc định quyền user
+                    role: 'user', // Mặc định tất cả user mới là người dùng bình thường
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                alert("🎉 Đăng ký thành công! Bạn đã có thể bắt đầu nhập liệu.");
-                toggleAuthModal();
+                alert("🎉 Đăng ký thành công! Bạn có thể bắt đầu sử dụng hệ thống.");
+                toggleAuthModal(); // Đóng form đăng nhập
             } catch(e) {
-                // Xử lý chi tiết các lỗi từ Firebase
-                let msg = "Lỗi đăng ký: ";
-                if(e.code === 'auth/email-already-in-use') msg += "Email này đã được đăng ký!";
-                else if(e.code === 'auth/invalid-email') msg += "Email không hợp lệ!";
-                else if(e.code === 'auth/weak-password') msg += "Mật khẩu quá yếu (ít nhất 6 ký tự).";
-                else msg += e.message;
-                
+                // Xử lý chi tiết lỗi từ Firebase
+                let msg = "❌ Đăng ký thất bại: ";
+                if(e.code === 'auth/email-already-in-use') {
+                    msg += "Email này đã được đăng ký. Vui lòng dùng nút Đăng nhập.";
+                } else if(e.code === 'auth/invalid-email') {
+                    msg += "Địa chỉ email không hợp lệ.";
+                } else if(e.code === 'auth/weak-password') {
+                    msg += "Mật khẩu quá yếu (cần ít nhất 6 ký tự)."; // Dù đã check ở trên, nhưng để chắc chắn
+                } else {
+                    msg += e.message; // Hiện thị lỗi chi tiết nếu là lỗi lạ
+                }
                 alert(msg);
+                console.error(e); // In lỗi ra console để bạn check
             }
         }
 
