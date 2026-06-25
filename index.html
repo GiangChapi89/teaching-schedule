@@ -73,7 +73,6 @@
             <div class="nav-right" id="navRight">
                 <span id="userDisplay" style="font-weight: 500; display:flex; align-items:center; gap:8px;">
                     👤 Chưa đăng nhập
-                    <!-- Nút đổi tên (ẩn khi chưa đăng nhập) -->
                     <button id="changeNameBtn" onclick="openChangeNameModal()" style="display:none; background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 10px; border-radius:4px; font-size:12px; cursor:pointer;">✏️</button>
                 </span>
                 <button class="nav-btn" id="loginToggleBtn" onclick="toggleAuthModal()">🔑 Đăng nhập</button>
@@ -87,6 +86,7 @@
                 <div class="auth-tab" onclick="switchAuthTab('register')">Đăng ký</div>
             </div>
             <div id="loginSection" class="auth-form-section active">
+                <!-- Đã đổi thành dùng redirect an toàn để chặn lỗi COOP -->
                 <button class="auth-btn" onclick="doGoogleLogin()" style="background:white; color:#555; border:1px solid #ddd; margin-bottom:15px;">Đăng nhập với Google</button>
                 <div class="auth-divider"><span>hoặc</span></div>
                 <input type="email" id="loginEmail" class="auth-input" placeholder="Email">
@@ -140,9 +140,10 @@
         let myUserId = null;
         const currentWeek = getCurrentWeek();
 
+        // Hàm bật/tắt Modal Đăng nhập (Sửa lỗi dòng 240)
         function toggleAuthModal() {
             const modal = document.getElementById('authContainer');
-            if (!modal) return; 
+            if (!modal) { console.warn("Auth Container not found"); return; }
             modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
         }
 
@@ -168,16 +169,8 @@
             
             const normalizedEmail = email.toLowerCase();
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(normalizedEmail)) {
-                return alert("❌ Email không hợp lệ. Vui lòng nhập đúng dạng (VD: ten@gmail.com)");
-            }
-
-            if (pass.length < 6) {
-                return alert("❌ Mật khẩu phải có ít nhất 6 ký tự! Vui lòng không dùng dấu cách.");
-            }
-            if (pass.includes(' ')) {
-                return alert("❌ Mật khẩu không được chứa dấu cách!");
-            }
+            if (!emailRegex.test(normalizedEmail)) return alert("❌ Email không hợp lệ.");
+            if (pass.length < 6 || pass.includes(' ')) return alert("❌ Mật khẩu phải có ít nhất 6 ký tự và không chứa dấu cách!");
 
             try {
                 const cred = await auth.createUserWithEmailAndPassword(normalizedEmail, pass);
@@ -188,20 +181,13 @@
                     role: 'user',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                
-                alert("🎉 Đăng ký thành công! Bạn có thể bắt đầu sử dụng hệ thống.");
+                alert("🎉 Đăng ký thành công!");
                 toggleAuthModal(); 
-                location.reload();
             } catch(e) {
                 let msg = "❌ Đăng ký thất bại: ";
-                if (e.code === 'auth/email-already-in-use') msg += "Email này đã được đăng ký. Vui lòng bấm nút Đăng nhập.";
-                else if (e.code === 'auth/invalid-email') msg += "Địa chỉ email không hợp lệ.";
-                else if (e.code === 'auth/weak-password') msg += "Mật khẩu quá yếu, vui lòng chọn mật khẩu mạnh hơn (tối thiểu 6 ký tự, không dấu cách).";
-                else if (e.code === 'auth/network-request-failed') msg += "Lỗi kết nối mạng. Vui lòng kiểm tra lại Internet.";
-                else msg += "Lỗi không xác định (Mã: " + e.code + "). Chi tiết: " + e.message;
-                
+                if (e.code === 'auth/email-already-in-use') msg += "Email đã tồn tại.";
+                else msg += e.message;
                 alert(msg);
-                console.error("Chi tiết lỗi đăng ký:", e);
             }
         }
 
@@ -212,21 +198,35 @@
                     document.getElementById('loginPassword').value.trim()
                 ); 
                 toggleAuthModal(); 
-                location.reload();
             }
             catch(e) { 
                 let msg = "❌ Đăng nhập thất bại: ";
-                if (e.code === 'auth/user-not-found') msg += "Email này chưa được đăng ký.";
-                else if (e.code === 'auth/wrong-password') msg += "Mật khẩu không chính xác.";
+                if (e.code === 'auth/user-not-found') msg += "Email chưa được đăng ký.";
+                else if (e.code === 'auth/wrong-password') msg += "Sai mật khẩu.";
                 else msg += e.message;
                 alert(msg); 
             }
         }
 
+        // 🛡️ ĐĂNG NHẬP GOOGLE: Chuyển từ Popup sang Redirect để chặn lỗi COOP
         async function doGoogleLogin() {
-            try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-            catch(e) { alert("Lỗi Google: " + e.message); }
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await auth.signInWithRedirect(provider);
+            } catch(e) {
+                alert("Lỗi Google: " + e.message);
+            }
         }
+
+        // 🛡️ Bắt sự kiện quay lại trang sau khi Redirect Google thành công
+        auth.getRedirectResult().then((result) => {
+            if (result.user) {
+                // Nếu đăng nhập Google thành công, tải lại trang
+                location.reload();
+            }
+        }).catch((error) => {
+            console.error("Lỗi Redirect Google:", error);
+        });
 
         async function doLogout() { await auth.signOut(); location.reload(); }
 
@@ -237,8 +237,7 @@
                 myUserId = user.uid;
                 
                 document.getElementById('userDisplay').innerHTML = `👤 ${user.displayName || user.email}`;
-                document.getElementById('changeNameBtn').style.display = 'inline-block';
-                
+                document.getElementById('changeNameBtn')?.style.display = 'inline-block';
                 document.getElementById('loginToggleBtn').style.display = 'none';
                 document.getElementById('logoutBtn').style.display = 'inline-block';
                 document.getElementById('authContainer').style.display = 'none';
@@ -253,12 +252,10 @@
                         await db.collection('users').doc(myUserId).set({
                             fullname: user.displayName || user.email,
                             email: user.email,
-                            role: 'user',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            role: 'user'
                         });
                     }
 
-                    // Hiển thị quyền Admin và nút Admin nếu có
                     if (currentUserRole === 'admin' || currentUserRole === 'super_admin') {
                         document.getElementById('userDisplay').innerHTML += ` <span style="background:#e67e22;padding:2px 8px;border-radius:4px;font-size:11px;color:white;">${currentUserRole === 'super_admin' ? 'Super Admin' : 'Admin'}</span>`;
                         if (!document.querySelector('.admin-nav-link')) {
@@ -266,7 +263,6 @@
                             adminLink.href = 'admin.html';
                             adminLink.className = 'nav-btn admin-nav-link';
                             adminLink.innerHTML = '⚙️ Quản trị';
-                            adminLink.style.marginLeft = '10px';
                             document.getElementById('navRight').appendChild(adminLink);
                         }
                     }
@@ -282,7 +278,7 @@
                 currentUser = null;
                 currentUserRole = 'user';
                 document.getElementById('userDisplay').innerHTML = '👤 Chưa đăng nhập';
-                document.getElementById('changeNameBtn').style.display = 'none';
+                document.getElementById('changeNameBtn')?.style.display = 'none';
                 document.getElementById('loginToggleBtn').style.display = 'inline-block';
                 document.getElementById('logoutBtn').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'none';
@@ -361,10 +357,8 @@
 
         async function renderMyForm() {
             const section = document.getElementById('myInputSection');
-            // Luôn hiện form cho mọi đối tượng đã đăng nhập (kể cả Admin và Super Admin - Họ cũng là GV)
             section.style.display = 'block';
 
-            // Lấy danh mục
             const doc = await db.collection('configs').doc('master_data').get();
             if(doc.exists) globalCatalogs = doc.data();
 
