@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 1300px; margin: auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .container { max-width: 1400px; margin: auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         
         /* Navbar */
         .navbar { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-radius: 10px; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
@@ -33,27 +33,30 @@
         #appContainer { display: none; }
         .user-badge { background: #27ae60; padding: 4px 12px; border-radius: 20px; font-size: 12px; color: white; margin-left: 10px; }
 
-        /* ===== FORM NHẬP LIỆU THEO NGÀY (DẠNG BẢNG) ===== */
+        /* ===== FORM NHẬP LIỆU DẠNG CỘT DỌC (Stacked Form) ===== */
         #myScheduleForm { display: flex; flex-direction: column; gap: 30px; margin-top: 20px; }
         
-        .day-schedule-block { background: #f8f9fa; border-radius: 12px; border: 1px solid #e9ecef; padding: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .day-schedule-block { background: #f8f9fa; border-radius: 12px; border: 1px solid #e9ecef; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         
-        .day-header { background: #e9ecef; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; flex-wrap: wrap; gap: 10px; }
+        .day-header { padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .day-header h5 { margin: 0; color: #2c3e50; font-weight: 700; font-size: 1.1rem; }
         .day-header .day-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         
-        .period-table { width: 100%; border-collapse: collapse; font-size: 13px; background: white; }
-        .period-table th { background: #f1f2f6; color: #555; padding: 8px 10px; text-align: left; border-bottom: 1px solid #ddd; font-weight: 600; }
-        .period-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
-        .period-table tr:last-child td { border-bottom: none; }
+        .period-rows-container { display: flex; flex-direction: column; gap: 20px; }
         
-        .period-table select, .period-table input { width: 100%; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; box-sizing: border-box; background: #fff; }
-        .period-table .custom-input { margin-top: 4px; }
+        /* Một khối cặp tiết (Dạng cột dọc) */
+        .period-row-block { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .period-row-block .remove-row-btn { position: absolute; top: -10px; right: -10px; background: #e74c3c; color: white; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         
-        .day-total-display { padding: 12px 20px; background: #fff3cd; border-top: 1px solid #ffc107; font-weight: bold; color: #856404; text-align: right; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .field-group { display: flex; flex-direction: column; gap: 4px; }
+        .field-group label { font-size: 12px; font-weight: 600; color: #555; }
+        .field-group select, .field-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; box-sizing: border-box; background: #fff; }
+        .field-group .custom-input { margin-top: 5px; }
+        
+        .day-total-display { padding: 15px 20px; background: #fff3cd; margin-top: 20px; border-radius: 8px; font-weight: bold; color: #856404; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .day-total-display .actions { display: flex; gap: 8px; }
         
-        .btn-sm { padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; }
+        .btn-sm { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; }
         .btn-primary { background: #3498db; color: white; }
         .btn-primary:hover { background: #2980b9; }
         .btn-success { background: #27ae60; color: white; }
@@ -62,34 +65,32 @@
         .btn-danger:hover { background: #c0392b; }
         .btn-warning { background: #f1c40f; color: #333; }
         .btn-warning:hover { background: #d4ac0d; }
-        .btn-outline-secondary { background: transparent; border: 1px solid #6c757d; color: #6c757d; }
-        .btn-outline-secondary:hover { background: #6c757d; color: white; }
 
-        /* Bảng tổng hợp */
+        /* Bảng tổng hợp (Mỗi cặp tiết 1 dòng) */
         .table-responsive { overflow-x: auto; margin-top: 30px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { background: #2c3e50; color: white; padding: 10px; text-align: center; position: sticky; top: 0; }
-        td, th { border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: top; }
-        .teacher-row td:first-child { font-weight: bold; text-align: left; background: #f1f2f6; min-width: 120px; }
-        .entry-cell { min-width: 150px; text-align: left; font-size: 13px; }
-        .entry-item { border-bottom: 1px solid #eee; padding: 6px 0; }
-        .entry-item:last-child { border-bottom: none; }
-        .total-cell { font-weight: bold; color: #2980b9; }
-        .grand-total-row { background: #34495e; color: white; font-weight: bold; font-size: 15px; }
+        td, th { border: 1px solid #ddd; padding: 8px 10px; text-align: left; vertical-align: top; }
+        
+        .teacher-header { background: #34495e; color: white; font-weight: bold; text-align: center; }
+        
+        /* Chi tiết hiển thị trong ô của bảng tổng hợp */
+        .entry-detail-row { padding: 4px 0; border-bottom: 1px solid #eee; font-size: 13px; display: flex; flex-wrap: wrap; gap: 3px; line-height: 1.4; }
+        .entry-detail-row:last-child { border-bottom: none; }
+        .entry-period-badge { font-weight: bold; color: #e67e22; margin-right: 5px; }
+        .entry-subject { font-weight: 600; }
+        .entry-meta { color: #555; font-size: 12px; }
+        .entry-note { font-style: italic; color: #2980b9; }
+        
+        .total-cell { font-weight: bold; color: #2980b9; text-align: center; }
+        .grand-total-row { background: #34495e; color: white; font-weight: bold; font-size: 15px; text-align: center; }
         .btn-load { background: #f1c40f; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-load:hover { background: #d4ac0d; }
 
-        /* Responsive */
         @media (max-width: 768px) {
-            .period-table, .period-table thead, .period-table tbody, .period-table tr, .period-table td, .period-table th { display: block; }
-            .period-table tr { margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-            .period-table td { text-align: right; padding-left: 50%; position: relative; border-bottom: none; }
-            .period-table td:before { position: absolute; top: 6px; left: 10px; width: 45%; padding-right: 10px; white-space: nowrap; font-weight: bold; content: attr(data-label); }
-            .period-table td:last-child { border-bottom: none; }
+            .period-row-block { grid-template-columns: 1fr; }
             .day-header { flex-direction: column; align-items: flex-start; }
-            .day-header .day-controls { width: 100%; justify-content: flex-start; }
             .day-total-display { flex-direction: column; align-items: flex-start; }
-            .day-total-display .actions { width: 100%; }
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -135,14 +136,14 @@
                 <h3 style="margin:0;">Bảng tổng hợp theo tuần</h3>
                 <button class="btn-load" onclick="loadData()"><i class="fas fa-sync"></i> Làm mới dữ liệu</button>
             </div>
+            
             <div id="scheduleTableContainer" class="table-responsive">
                 <p style="text-align: center; color: #888; padding: 40px 0;">Đang tải dữ liệu...</p>
             </div>
 
             <div id="myInputSection" style="margin-top: 40px; border-top: 2px dashed #ccc; padding-top: 30px; display:none;">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
-                    <h4 style="color:#2c3e50; margin:0; display:flex; align-items:center; gap:10px;">✏️ Cập nhật lịch dạy (Theo cặp tiết) <span class="user-badge">Chỉ bạn thấy</span></h4>
-                    <!-- Nút Lưu cả tuần (Dùng để lưu toàn bộ dữ liệu đã điền trên form) -->
+                    <h4 style="color:#2c3e50; margin:0; display:flex; align-items:center; gap:10px;">✏️ Cập nhật lịch dạy <span class="user-badge">Chỉ bạn thấy</span></h4>
                     <button class="btn-success" onclick="saveAllWeekData()" style="padding: 8px 20px;">💾 Lưu cả tuần</button>
                 </div>
                 <div id="myScheduleForm"></div>
@@ -174,8 +175,8 @@
         const DAYS = ['Thu_2', 'Thu_3', 'Thu_4', 'Thu_5', 'Thu_6', 'Thu_7'];
         const DISPLAY_DAYS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
         const PERIODS = ['I', 'II', 'III'];
-        const DEFAULT_PERIODS = 3; // Mặc định mỗi ngày có 3 cặp
-        const SLOTS_PER_PERIOD = 2; // Mỗi cặp mặc định 2 tiết
+        const DEFAULT_PERIODS = 3;
+        const SLOTS_PER_PERIOD = 2;
 
         // --- 2. CÁC HÀM GIAO DIỆN ---
         function toggleAuthModal() {
@@ -298,7 +299,6 @@
                         }
                     }
                     await createUserRowIfNotExist();
-                    // Load danh mục trước, sau đó mới load dữ liệu
                     await loadCatalogs();
                     await loadData();
                 } catch (error) { console.error("Lỗi tải user:", error); }
@@ -345,7 +345,7 @@
             } catch(e) { document.getElementById('scheduleTableContainer').innerHTML = `<p style="color:red;">Lỗi: ${e.message}</p>`; }
         }
 
-        // --- 6. RENDER FORM MỚI THEO BẢNG ---
+        // --- 6. RENDER FORM MỚI (Stacked Form) ---
         function renderMyForm(scheduleMap) {
             const section = document.getElementById('myInputSection');
             section.style.display = 'block'; 
@@ -354,7 +354,6 @@
             let html = '';
             DAYS.forEach((dayKey, index) => {
                 const displayDay = DISPLAY_DAYS[index];
-                // Lấy dữ liệu hiện tại của ngày này từ Database
                 const dayDataFromDB = (scheduleMap && scheduleMap[myUserId] && scheduleMap[myUserId][dayKey]) || [];
                 
                 html += `<div class="day-schedule-block" id="block_${dayKey}">
@@ -366,143 +365,191 @@
                             <button class="btn-sm btn-danger" onclick="clearDay('${dayKey}')">🗑️ Xóa ngày</button>
                         </div>
                     </div>
-                    <table class="period-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 80px;">Cặp</th>
-                                <th>Môn học</th>
-                                <th style="width: 25%;">Lớp</th>
-                                <th style="width: 25%;">Phòng</th>
-                                <th style="width: 60px; text-align:center;">Tiết</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody_${dayKey}">
-                            <!-- Các dòng cặp tiết sẽ được render ở đây -->
-                        </tbody>
-                    </table>
+                    <div class="period-rows-container" id="container_${dayKey}">
+                        <!-- Các khối cặp tiết sẽ được render ở đây -->
+                    </div>
                     <div class="day-total-display">
                         <span id="total_display_${dayKey}">Tổng: 0 tiết</span>
-                        <div class="actions">
-                            <!-- Khi lưu ngày, chỉ lưu ngày đó. Thêm nút Xóa (đã có ở trên) -->
-                        </div>
                     </div>
                 </div>`;
             });
             formContainer.innerHTML = html;
 
-            // Sau khi tạo khung HTML, điền dữ liệu vào từng ngày
+            // Điền dữ liệu vào từng ngày
             DAYS.forEach((dayKey, index) => {
                 const dayDataFromDB = (scheduleMap && scheduleMap[myUserId] && scheduleMap[myUserId][dayKey]) || [];
                 renderDayRows(dayKey, dayDataFromDB);
             });
         }
 
-        // Hàm tạo các dòng (cặp tiết) cho một ngày cụ thể
+        // Hàm tạo các khối cặp tiết dạng cột dọc
         function renderDayRows(dayKey, data) {
-            const tbody = document.getElementById(`tbody_${dayKey}`);
-            if(!tbody) return;
+            const container = document.getElementById(`container_${dayKey}`);
+            if(!container) return;
             
-            // Nếu dữ liệu rỗng, tạo mặc định 3 dòng trống (PERIODS I, II, III)
             let rowsData = data;
             if(!rowsData || rowsData.length === 0) {
-                rowsData = PERIODS.map(p => ({ period: p, subject: '', class: '', room: '', slots: SLOTS_PER_PERIOD }));
+                rowsData = PERIODS.map(p => ({ period: p, subject: '', class: '', room: '', slots: SLOTS_PER_PERIOD, note: '' }));
             }
 
             let html = '';
             rowsData.forEach((entry, idx) => {
                 const periodVal = entry.period || PERIODS[idx] || 'I';
-                // Tạo dropdown cặp tiết (cho phép chọn)
-                const periodOpts = ['I', 'II', 'III', 'IV'].map(p => `<option value="${p}" ${p === periodVal ? 'selected' : ''}>${p}</option>`).join('');
+                const periodOpts = ['I', 'II', 'III', 'IV', 'V'].map(p => `<option value="${p}" ${p === periodVal ? 'selected' : ''}>${p}</option>`).join('');
                 
-                html += `<tr class="period-row">
-                    <td data-label="Cặp">
+                html += `<div class="period-row-block">
+                    <button class="remove-row-btn" onclick="removePeriodRow('${dayKey}', this)">×</button>
+                    <div class="field-group">
+                        <label>Cặp tiết</label>
                         <select class="period-select">${periodOpts}</select>
-                    </td>
-                    <td data-label="Môn">
+                    </div>
+                    <div class="field-group">
+                        <label>Môn học</label>
                         <select class="subject-select" onchange="toggleCustomInput(this)">
                             <option value="">Chọn môn...</option>
                             ${globalCatalogs.subjects.map(s => `<option value="${s}" ${s === entry.subject ? 'selected' : ''}>${s}</option>`).join('')}
                             <option value="__CUSTOM__" ${entry.subject && !globalCatalogs.subjects.includes(entry.subject) ? 'selected' : ''}>✏️ Nhập tên khác</option>
                         </select>
                         <input type="text" class="d-none custom-input mt-1" placeholder="Tên môn khác..." value="${entry.subject && !globalCatalogs.subjects.includes(entry.subject) ? entry.subject : ''}">
-                    </td>
-                    <td data-label="Lớp">
+                    </div>
+                    <div class="field-group">
+                        <label>Lớp</label>
                         <select class="class-select" onchange="toggleCustomInput(this)">
                             <option value="">Chọn lớp...</option>
                             ${globalCatalogs.classes.map(c => `<option value="${c}" ${c === entry.class ? 'selected' : ''}>${c}</option>`).join('')}
                             <option value="__CUSTOM__" ${entry.class && !globalCatalogs.classes.includes(entry.class) ? 'selected' : ''}>✏️ Nhập tên khác</option>
                         </select>
                         <input type="text" class="d-none custom-input mt-1" placeholder="Tên lớp khác..." value="${entry.class && !globalCatalogs.classes.includes(entry.class) ? entry.class : ''}">
-                    </td>
-                    <td data-label="Phòng">
+                    </div>
+                    <div class="field-group">
+                        <label>Phòng</label>
                         <select class="room-select" onchange="toggleCustomInput(this)">
                             <option value="">Chọn phòng...</option>
                             ${globalCatalogs.rooms.map(r => `<option value="${r}" ${r === entry.room ? 'selected' : ''}>${r}</option>`).join('')}
                             <option value="__CUSTOM__" ${entry.room && !globalCatalogs.rooms.includes(entry.room) ? 'selected' : ''}>✏️ Nhập tên khác</option>
                         </select>
                         <input type="text" class="d-none custom-input mt-1" placeholder="Tên phòng khác..." value="${entry.room && !globalCatalogs.rooms.includes(entry.room) ? entry.room : ''}">
-                    </td>
-                    <td data-label="Tiết" style="text-align:center;">
-                        <input type="number" class="slots-input" value="${entry.slots || SLOTS_PER_PERIOD}" min="0" style="width: 50px; text-align:center;">
-                    </td>
-                </tr>`;
+                    </div>
+                    <div class="field-group">
+                        <label>Số tiết</label>
+                        <input type="number" class="slots-input" value="${entry.slots || SLOTS_PER_PERIOD}" min="0">
+                    </div>
+                    <div class="field-group">
+                        <label>Ghi chú</label>
+                        <input type="text" class="note-input" placeholder="VD: Thi kết thúc (Thụ+Giang)" value="${entry.note || ''}">
+                    </div>
+                </div>`;
             });
-            tbody.innerHTML = html;
+            container.innerHTML = html;
             updateDayTotal(dayKey);
         }
 
-        // Cập nhật lại dữ liệu cho một ngày cụ thể (Gọi khi thêm/xóa dòng)
+        // Cập nhật tổng tiết cho ngày
+        function updateDayTotal(dayKey) {
+            const container = document.getElementById(`container_${dayKey}`);
+            const blocks = container.querySelectorAll('.period-row-block');
+            let total = 0;
+            blocks.forEach(block => {
+                let s = parseInt(block.querySelector('.slots-input').value) || 0;
+                total += s;
+            });
+            document.getElementById(`total_display_${dayKey}`).innerHTML = `Tổng: ${total} tiết`;
+        }
+
+        // --- 7. TƯƠNG TÁC FORM (Thêm, Xóa dòng, Lưu) ---
         function addPeriodRow(dayKey) {
-            const tbody = document.getElementById(`tbody_${dayKey}`);
-            // Thêm một dòng mới với dữ liệu mặc định
-            const newRow = document.createElement('tr');
-            newRow.className = 'period-row';
-            const periodOpts = ['I', 'II', 'III', 'IV'].map(p => `<option value="${p}">${p}</option>`).join('');
-            newRow.innerHTML = `
-                <td data-label="Cặp"><select class="period-select">${periodOpts}</select></td>
-                <td data-label="Môn">
+            const container = document.getElementById(`container_${dayKey}`);
+            const periodOpts = ['I', 'II', 'III', 'IV', 'V'].map(p => `<option value="${p}">${p}</option>`).join('');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'period-row-block';
+            newBlock.innerHTML = `
+                <button class="remove-row-btn" onclick="removePeriodRow('${dayKey}', this)">×</button>
+                <div class="field-group">
+                    <label>Cặp tiết</label>
+                    <select class="period-select">${periodOpts}</select>
+                </div>
+                <div class="field-group">
+                    <label>Môn học</label>
                     <select class="subject-select" onchange="toggleCustomInput(this)">
                         <option value="">Chọn môn...</option>${globalCatalogs.subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
                         <option value="__CUSTOM__">✏️ Nhập tên khác</option>
                     </select>
                     <input type="text" class="d-none custom-input mt-1" placeholder="Tên môn khác...">
-                </td>
-                <td data-label="Lớp">
+                </div>
+                <div class="field-group">
+                    <label>Lớp</label>
                     <select class="class-select" onchange="toggleCustomInput(this)">
                         <option value="">Chọn lớp...</option>${globalCatalogs.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
                         <option value="__CUSTOM__">✏️ Nhập tên khác</option>
                     </select>
                     <input type="text" class="d-none custom-input mt-1" placeholder="Tên lớp khác...">
-                </td>
-                <td data-label="Phòng">
+                </div>
+                <div class="field-group">
+                    <label>Phòng</label>
                     <select class="room-select" onchange="toggleCustomInput(this)">
                         <option value="">Chọn phòng...</option>${globalCatalogs.rooms.map(r => `<option value="${r}">${r}</option>`).join('')}
                         <option value="__CUSTOM__">✏️ Nhập tên khác</option>
                     </select>
                     <input type="text" class="d-none custom-input mt-1" placeholder="Tên phòng khác...">
-                </td>
-                <td data-label="Tiết" style="text-align:center;">
-                    <input type="number" class="slots-input" value="${SLOTS_PER_PERIOD}" min="0" style="width: 50px; text-align:center;">
-                </td>
+                </div>
+                <div class="field-group">
+                    <label>Số tiết</label>
+                    <input type="number" class="slots-input" value="${SLOTS_PER_PERIOD}" min="0">
+                </div>
+                <div class="field-group">
+                    <label>Ghi chú</label>
+                    <input type="text" class="note-input" placeholder="VD: Thi kết thúc (Thụ+Giang)">
+                </div>
             `;
-            tbody.appendChild(newRow);
+            container.appendChild(newBlock);
             updateDayTotal(dayKey);
         }
 
-        // Xóa 1 dòng cặp tiết (Gọi từ nút Xóa trên thanh header? Không có, nhưng user có thể chọn xóa data)
-        // Hàm lưu ngày
+        function removePeriodRow(dayKey, btn) {
+            const container = document.getElementById(`container_${dayKey}`);
+            if(container.querySelectorAll('.period-row-block').length <= 1) {
+                alert("Mỗi ngày cần ít nhất 1 dòng!");
+                return;
+            }
+            btn.closest('.period-row-block').remove();
+            updateDayTotal(dayKey);
+        }
+
+        function getSelectValue(row, selector) {
+            const sel = row.querySelector(selector);
+            if(sel.value === '__CUSTOM__') {
+                const customInput = row.querySelector(selector + ' + .custom-input');
+                return customInput ? customInput.value : '';
+            }
+            return sel.value;
+        }
+
+        function toggleCustomInput(selectEl) {
+            const customInput = selectEl.parentElement.querySelector('.custom-input');
+            if(selectEl.value === '__CUSTOM__') {
+                customInput.classList.remove('d-none');
+                selectEl.classList.add('d-none');
+                customInput.focus();
+            } else {
+                customInput.classList.add('d-none');
+                selectEl.classList.remove('d-none');
+            }
+        }
+
+        // Lưu 1 ngày
         function saveDay(dayKey) {
-            const tbody = document.getElementById(`tbody_${dayKey}`);
-            const rows = tbody.querySelectorAll('.period-row');
+            const container = document.getElementById(`container_${dayKey}`);
+            const blocks = container.querySelectorAll('.period-row-block');
             let dayArray = [];
-            rows.forEach(row => {
-                let period = row.querySelector('.period-select').value;
-                let subject = getSelectValue(row, '.subject-select');
-                let className = getSelectValue(row, '.class-select');
-                let room = getSelectValue(row, '.room-select');
-                let slots = parseInt(row.querySelector('.slots-input').value) || 0;
+            blocks.forEach(block => {
+                let period = block.querySelector('.period-select').value;
+                let subject = getSelectValue(block, '.subject-select');
+                let className = getSelectValue(block, '.class-select');
+                let room = getSelectValue(block, '.room-select');
+                let slots = parseInt(block.querySelector('.slots-input').value) || 0;
+                let note = block.querySelector('.note-input').value.trim();
                 if(period && subject) {
-                    dayArray.push({ period, subject, class: className, room, slots });
+                    dayArray.push({ period, subject, class: className, room, slots, note });
                 }
             });
             updateUserDataDay(dayKey, dayArray);
@@ -519,39 +566,36 @@
                 const rowRef = db.collection('weeks').doc(`week_${new Date().getFullYear()}_${currentWeek}`).collection('rows').doc(myUserId);
                 await rowRef.update({ [dayKey]: dataArray });
                 alert(`✅ Đã lưu ngày ${dayKey.replace('_', ' ')} thành công!`);
-                // Cập nhật local UI ngay lập tức
                 renderDayRows(dayKey, dataArray);
-                loadData(); // Cập nhật bảng tổng hợp
+                loadData();
             } catch(e) {
                 alert("Lỗi lưu dữ liệu: " + e.message);
             }
         }
 
-        // Hàm lưu cả tuần
+        // Lưu cả tuần
         async function saveAllWeekData() {
             if(!currentUser) return;
             let allData = {};
-            let hasError = false;
             
             DAYS.forEach(dayKey => {
-                const tbody = document.getElementById(`tbody_${dayKey}`);
-                if(!tbody) return;
-                const rows = tbody.querySelectorAll('.period-row');
+                const container = document.getElementById(`container_${dayKey}`);
+                if(!container) return;
+                const blocks = container.querySelectorAll('.period-row-block');
                 let dayArray = [];
-                rows.forEach(row => {
-                    let period = row.querySelector('.period-select').value;
-                    let subject = getSelectValue(row, '.subject-select');
-                    let className = getSelectValue(row, '.class-select');
-                    let room = getSelectValue(row, '.room-select');
-                    let slots = parseInt(row.querySelector('.slots-input').value) || 0;
+                blocks.forEach(block => {
+                    let period = block.querySelector('.period-select').value;
+                    let subject = getSelectValue(block, '.subject-select');
+                    let className = getSelectValue(block, '.class-select');
+                    let room = getSelectValue(block, '.room-select');
+                    let slots = parseInt(block.querySelector('.slots-input').value) || 0;
+                    let note = block.querySelector('.note-input').value.trim();
                     if(period && subject) {
-                        dayArray.push({ period, subject, class: className, room, slots });
+                        dayArray.push({ period, subject, class: className, room, slots, note });
                     }
                 });
                 allData[dayKey] = dayArray;
             });
-
-            if(hasError) return alert("Có lỗi dữ liệu. Vui lòng kiểm tra lại.");
             
             try {
                 const rowRef = db.collection('weeks').doc(`week_${new Date().getFullYear()}_${currentWeek}`).collection('rows').doc(myUserId);
@@ -563,35 +607,15 @@
             }
         }
 
-        function getSelectValue(row, selector) {
-            const sel = row.querySelector(selector);
-            if(sel.value === '__CUSTOM__') {
-                const customInput = row.querySelector(selector + ' + .custom-input');
-                return customInput ? customInput.value : '';
-            }
-            return sel.value;
-        }
-
-        function updateDayTotal(dayKey) {
-            const tbody = document.getElementById(`tbody_${dayKey}`);
-            const rows = tbody.querySelectorAll('.period-row');
-            let total = 0;
-            rows.forEach(row => {
-                let s = parseInt(row.querySelector('.slots-input').value) || 0;
-                total += s;
-            });
-            document.getElementById(`total_display_${dayKey}`).innerHTML = `Tổng: ${total} tiết`;
-        }
-
-        // --- 7. RENDER BẢNG TỔNG HỢP ---
+        // --- 8. RENDER BẢNG TỔNG HỢP (1 DÒNG CHO MỖI CẶP TIẾT) ---
         function renderTable(users, scheduleMap) {
             const container = document.getElementById('scheduleTableContainer');
-            let html = `<table><thead><tr><th style="min-width:150px;">Giảng Viên</th>${DISPLAY_DAYS.map(d => `<th>${d}</th>`).join('')}<th>Tổng tiết</th></tr></thead><tbody>`;
+            let html = `<table><thead><tr><th style="min-width:160px;">Giảng Viên</th>${DISPLAY_DAYS.map(d => `<th style="min-width:200px;">${d}</th>`).join('')}<th style="width:80px;">Tổng tiết</th></tr></thead><tbody>`;
             let grandTotals = {};
 
             users.forEach(user => {
                 const userData = scheduleMap[user.id] || {};
-                html += `<tr class="teacher-row"><td>${user.fullname || 'GV'}</td>`;
+                html += `<tr><td class="teacher-header" style="text-align:left;">${user.fullname || 'GV'}</td>`;
                 let lecturerTotal = 0;
                 
                 DAYS.forEach(day => {
@@ -602,16 +626,29 @@
                     if(Array.isArray(dayArr) && dayArr.length > 0) {
                         dayArr.forEach(entry => {
                             if(entry.period && entry.subject) {
-                                displayHtml += `<div class="entry-item"><b>[Cặp ${entry.period}]</b> ${entry.subject}<br><span style="font-size:12px; color:#666;">Lớp: ${entry.class || '-'} - Phòng: ${entry.room || '-'}</span></div>`;
+                                // Format: I: 3KT/25VRC/412/2/Thi kết thúc (Thụ+Giang)
+                                let lineHtml = `<div class="entry-detail-row">`;
+                                lineHtml += `<span class="entry-period-badge">${entry.period}:</span>`;
+                                lineHtml += `<span class="entry-subject">${entry.subject}</span>`;
+                                if(entry.class || entry.room) {
+                                    lineHtml += `<span class="entry-meta"> / ${entry.class || '-'} / ${entry.room || '-'}`;
+                                }
+                                lineHtml += ` / ${parseInt(entry.slots) || 0}`;
+                                if(entry.note) {
+                                    lineHtml += ` / <span class="entry-note">${entry.note}</span>`;
+                                }
+                                lineHtml += `</span></div>`;
+                                
+                                displayHtml += lineHtml;
                                 dayTotal += parseInt(entry.slots) || 0; 
                             }
                         });
                     }
-                    if(!displayHtml) displayHtml = '<span style="color:#ccc;">-</span>';
+                    if(!displayHtml) displayHtml = '<div style="color:#ccc; text-align:center;">-</div>';
                     lecturerTotal += dayTotal;
                     if(!grandTotals[day]) grandTotals[day] = 0;
                     grandTotals[day] += dayTotal;
-                    html += `<td class="entry-cell">${displayHtml}<div style="margin-top:5px;font-size:11px;color:#e67e22;">Tổng: ${dayTotal}</div></td>`;
+                    html += `<td>${displayHtml}<div style="margin-top:8px;font-size:11px;color:#e67e22;border-top:1px dashed #eee;padding-top:5px;text-align:right;">Tổng: ${dayTotal}</div></td>`;
                 });
                 html += `<td class="total-cell">${lecturerTotal}</td></tr>`;
             });
@@ -623,7 +660,7 @@
             container.innerHTML = html;
         }
 
-        // --- 8. CHỨC NĂNG ĐỔI TÊN ---
+        // --- 9. CHỨC NĂNG ĐỔI TÊN ---
         function openChangeNameModal() {
             document.getElementById('newDisplayName').value = currentUser.displayName || '';
             document.getElementById('changeNameModal').style.display = 'flex';
@@ -641,19 +678,6 @@
                 alert("✅ Đã đổi tên thành công!");
                 location.reload();
             } catch(e) { alert("Lỗi khi đổi tên: " + e.message); }
-        }
-
-        // Tiện ích bổ trợ cho Form
-        function toggleCustomInput(selectEl) {
-            const customInput = selectEl.parentElement.querySelector('.custom-input');
-            if(selectEl.value === '__CUSTOM__') {
-                customInput.classList.remove('d-none');
-                selectEl.classList.add('d-none');
-                customInput.focus();
-            } else {
-                // Quay lại chọn từ list (nếu cần)
-                // Code này giữ trạng thái bình thường
-            }
         }
     </script>
 </body>
