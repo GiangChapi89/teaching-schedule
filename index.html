@@ -680,19 +680,40 @@
 
         // --- 9. ĐỔI TÊN ---
         function openChangeNameModal() {
-            document.getElementById('newDisplayName').value = currentUser.displayName || '';
+            // Điền tên hiện tại vào ô input
+            const inputField = document.getElementById('newDisplayName');
+            if(inputField && currentUser) {
+                inputField.value = currentUser.displayName || '';
+            }
             document.getElementById('changeNameModal').style.display = 'flex';
         }
         
         async function updateMyName() {
             const newName = document.getElementById('newDisplayName').value.trim();
             if(!newName) return alert("Vui lòng nhập tên mới!");
-            try {
-                await currentUser.updateProfile({ displayName: newName });
-                await db.collection('users').doc(myUserId).update({ fullname: newName });
+            
+            // Kiểm tra xem tên có thay đổi không để tránh ghi đè không cần thiết
+            if(newName === currentUser.displayName) {
                 document.getElementById('changeNameModal').style.display = 'none';
-                alert("✅ Đã đổi tên!"); location.reload();
-            } catch(e) { alert("Lỗi: " + e.message); }
+                return;
+            }
+
+            try {
+                // 1. Cập nhật trong Firebase Authentication (Để đổi tên hiển thị trên Navbar)
+                await currentUser.updateProfile({ displayName: newName });
+                
+                // 2. Cập nhật trong Firestore collection 'users' (Để hiển thị trên bảng tổng hợp)
+                await db.collection('users').doc(myUserId).update({ fullname: newName });
+
+                // 3. Đóng Modal và thông báo
+                document.getElementById('changeNameModal').style.display = 'none';
+                alert("✅ Đã đổi tên thành công!");
+                
+                // 4. Tải lại trang để hiển thị tên mới trên toàn bộ giao diện
+                location.reload();
+            } catch(e) { 
+                alert("Lỗi khi đổi tên: " + e.message); 
+            }
         }
     </script>
 </body>
