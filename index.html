@@ -93,6 +93,33 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Thêm cấu hình Firebase trực tiếp trong HTML để chắc chắn auth tồn tại -->
+    <script>
+        // =============================================
+        // 🔥 FIREBASE CONFIG (Khắc phục lỗi undefined)
+        // =============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEjnVYAOpBHUV8AKfxxFdCumwGqiH_9C8",
+            authDomain: "schedule-master-3fead.firebaseapp.com",
+            projectId: "schedule-master-3fead",
+            storageBucket: "schedule-master-3fead.firebasestorage.app",
+            messagingSenderId: "56251862481",
+            appId: "1:56251862481:web:38fa80577b41a5248fe4f0",
+            measurementId: "G-76WQ3E4G7V"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Mặc định lấy tuần hiện tại (Tuần 1 của năm hiện tại)
+        function getCurrentWeek() {
+            const now = new Date();
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
+            return Math.ceil((days + startOfYear.getDay() + 1) / 7);
+        }
+    </script>
 </head>
 <body>
     <div class="container">
@@ -101,7 +128,8 @@
             <div class="nav-right" id="navRight">
                 <span id="userDisplay" style="font-weight: 500; display:flex; align-items:center; gap:8px;">
                     👤 Chưa đăng nhập
-                    <button id="changeNameBtn" onclick="openChangeNameModal()" style="display:none;">✏️</button>
+                    <!-- Nút đổi tên (Ẩn khi chưa đăng nhập) -->
+                    <button id="changeNameBtn" onclick="openChangeNameModal()" style="display:none; background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 10px; border-radius:4px; font-size:12px; cursor:pointer;">✏️</button>
                 </span>
                 <button class="nav-btn" id="loginToggleBtn" onclick="toggleAuthModal()">🔑 Đăng nhập</button>
                 <button class="nav-btn btn-danger-outline" id="logoutBtn" style="display:none;" onclick="doLogout()">🚪 Đăng xuất</button>
@@ -174,6 +202,7 @@
                 <select id="adminUserSelect" onchange="onAdminSelectUser()">
                     <option value="">-- Chọn tên --</option>
                 </select>
+                <span style="font-size:13px; color:#666; margin-left:10px;">(Bạn đang ở chế độ Quản trị viên. Hãy chọn tên để thao tác thay họ.)</span>
             </div>
 
             <!-- ===== FORM NHẬP LIỆU ===== -->
@@ -185,10 +214,11 @@
                 <div id="myScheduleForm"></div>
             </div>
             
-            <div id="changeNameModal" style="display:none;">
-                <div style="background:white; padding:30px; border-radius:12px; max-width:400px; margin:auto; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-                    <h3>✏️ Đổi tên hiển thị</h3>
-                    <input type="text" id="newDisplayName" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; margin:10px 0;" placeholder="Nhập tên mới...">
+            <div id="changeNameModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center;">
+                <div style="background:white; padding:30px; border-radius:12px; max-width:400px; width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                    <h3 style="margin-top:0; color:#2c3e50;">✏️ Đổi tên hiển thị</h3>
+                    <p style="color:#666; font-size:14px;">Tên mới sẽ được cập nhật trên bảng tổng hợp và thanh điều hướng.</p>
+                    <input type="text" id="newDisplayName" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; margin-bottom:15px; box-sizing:border-box;" placeholder="Nhập tên mới...">
                     <div style="display:flex; gap:10px; justify-content:flex-end;">
                         <button onclick="document.getElementById('changeNameModal').style.display='none'" style="background:#95a5a6; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer;">Hủy</button>
                         <button onclick="updateMyName()" style="background:#3498db; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer;">Lưu tên</button>
@@ -198,7 +228,6 @@
         </div>
     </div>
 
-    <script src="schedule-config.js"></script>
     <script>
         // --- 1. BIẾN TOÀN CỤC ---
         let currentUser = null, currentUserRole = 'user', myUserId = null, editingUserId = null;
@@ -211,19 +240,92 @@
         const DISPLAY_DAYS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 
         // --- 2. CÁC HÀM GIAO DIỆN ---
-        function toggleAuthModal() { const modal = document.getElementById('authContainer'); if (modal) modal.style.display = modal.style.display === 'none' ? 'block' : 'none'; }
+        function toggleAuthModal() { 
+            const modal = document.getElementById('authContainer'); 
+            if (modal) modal.style.display = modal.style.display === 'none' ? 'block' : 'none'; 
+        }
+        
         function switchAuthTab(tab) {
             document.querySelectorAll('.auth-tab, .auth-form-section').forEach(el => el.classList.remove('active'));
             document.querySelector(tab === 'login' ? '.auth-tabs .auth-tab:first-child' : '.auth-tabs .auth-tab:last-child').classList.add('active');
             document.getElementById(tab === 'login' ? 'loginSection' : 'registerSection').classList.add('active');
         }
 
-        // --- 3. AUTH STATE CHANGED ---      
+        // --- 3. ĐĂNG KÝ / ĐĂNG NHẬP ---
+        async function doRegister() {
+            const name = document.getElementById('regFullName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const pass = document.getElementById('regPassword').value.trim();
+            if(!name || !email || !pass) return alert("❌ Vui lòng điền đầy đủ!");
+            if(pass.length < 6) return alert("❌ Mật khẩu phải có ít nhất 6 ký tự!");
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                await cred.user.updateProfile({ displayName: name });
+                await db.collection('users').doc(cred.user.uid).set({
+                    fullname: name, email: email, role: 'user',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("🎉 Đăng ký thành công!");
+                toggleAuthModal(); 
+            } catch(e) {
+                let msg = "❌ Lỗi: ";
+                if(e.code === 'auth/email-already-in-use') msg += "Email đã tồn tại.";
+                else msg += e.message;
+                alert(msg);
+            }
+        }
+
+        async function doLogin() {
+            try { 
+                await auth.signInWithEmailAndPassword(
+                    document.getElementById('loginEmail').value.trim(), 
+                    document.getElementById('loginPassword').value.trim()
+                ); 
+                toggleAuthModal(); 
+                location.reload();
+            } catch(e) {
+                let msg = "❌ Lỗi: ";
+                if(e.code === 'auth/wrong-password') msg += "Sai mật khẩu.";
+                else if(e.code === 'auth/user-not-found') msg += "Email chưa đăng ký.";
+                else msg += e.message;
+                alert(msg);
+            }
+        }
+
+        async function doGoogleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await auth.signInWithPopup(provider);
+                if (result.user) location.reload();
+            } catch (error) {
+                if (error.code === 'auth/popup-blocked' || error.code === 'auth/cross-origin-auth') {
+                    alert("Popup bị chặn, chuyển hướng...");
+                    try { await auth.signInWithRedirect(provider); } catch(e) { alert("Lỗi: " + e.message); }
+                } else {
+                    alert("Lỗi Google: " + error.message);
+                }
+            }
+        }
+
+        auth.getRedirectResult().then((result) => {
+            if (result.user) location.reload();
+        }).catch((error) => {
+            console.error("Lỗi Redirect Google:", error);
+        });
+
+        async function doLogout() { await auth.signOut(); location.reload(); }
+
+        // --- 4. AUTH STATE CHANGED ---      
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user; myUserId = user.uid; editingUserId = user.uid;
                 document.getElementById('userDisplay').innerHTML = `👤 ${user.displayName || user.email}`;
-                document.getElementById('changeNameBtn').style.display = 'inline-block';
+                
+                // ✅ SỬA LỖI DÒNG 226: Dùng setTimeout và Optional Chaining để chặn lỗi null
+                setTimeout(() => {
+                    document.getElementById('changeNameBtn')?.style.display = 'inline-block';
+                }, 100);
+
                 document.getElementById('loginToggleBtn').style.display = 'none';
                 document.getElementById('logoutBtn').style.display = 'inline-block';
                 document.getElementById('authContainer').style.display = 'none';
@@ -234,7 +336,7 @@
                 else { currentUserRole = 'user'; await db.collection('users').doc(myUserId).set({ fullname: user.displayName || user.email, email: user.email, role: 'user' }); }
 
                 if (currentUserRole === 'admin' || currentUserRole === 'super_admin') {
-                    document.getElementById('userDisplay').innerHTML += ` <span style="background:#e67e22;">${currentUserRole === 'super_admin' ? 'Super Admin' : 'Admin'}</span>`;
+                    document.getElementById('userDisplay').innerHTML += ` <span style="background:#e67e22;padding:2px 8px;border-radius:4px;font-size:11px;color:white;">${currentUserRole === 'super_admin' ? 'Super Admin' : 'Admin'}</span>`;
                     if (!document.querySelector('.admin-nav-link')) {
                         const adminLink = document.createElement('a'); adminLink.href = 'admin.html'; adminLink.className = 'nav-btn admin-nav-link'; adminLink.innerHTML = '⚙️ Quản trị'; document.getElementById('navRight').appendChild(adminLink);
                     }
@@ -253,7 +355,7 @@
             }
         });
 
-        // --- 4. LOGIC DỮ LIỆU ---
+        // --- 5. LOGIC DỮ LIỆU ---
         async function loadCatalogs() {
             const doc = await db.collection('configs').doc('master_data').get();
             if(doc.exists) globalCatalogs = doc.data();
@@ -299,7 +401,7 @@
             await loadData();
         });
 
-        // --- 5. TẢI VÀ RENDER BẢNG TỔNG HỢP ---
+        // --- 6. TẢI VÀ RENDER BẢNG TỔNG HỢP ---
         async function loadData() {
             const year = document.getElementById('filterYear').value;
             const week = document.getElementById('filterWeek').value;
@@ -317,7 +419,6 @@
             // Lấy dữ liệu lịch dạy
             let allRows = [];
             if(week === 'all') {
-                // Nếu chọn tất cả tuần, lấy tất cả sub-collection weeks
                 const weeksSnap = await db.collection('configs').doc('master_data').collection('academic_years').doc(year).collection('weeks').listDocuments();
                 for (const weekRef of weeksSnap) {
                     const rowsSnap = await weekRef.collection('rows').get();
@@ -347,7 +448,6 @@
 
         function renderTable(dataMap, users, lecturerFilter, dayFilter) {
             const container = document.getElementById('scheduleTableContainer');
-            // Xác định cột cần hiển thị
             let displayDays = DAY_KEYS;
             let displayDayNames = DISPLAY_DAYS;
             if(dayFilter !== 'all') {
@@ -370,7 +470,6 @@
                 let lecturerTotal = 0;
 
                 displayDays.forEach(day => {
-                    // Tính tổng trên tất cả các tuần đang lọc
                     let dayTotal = 0;
                     let displayHtml = '';
 
@@ -407,7 +506,7 @@
             container.innerHTML = html;
         }
 
-        // --- 6. RENDER FORM NHẬP LIỆU ---
+        // --- 7. RENDER FORM NHẬP LIỆU ---
         async function renderMyForm(dataMap, currentWeekId) {
             const section = document.getElementById('myInputSection');
             section.style.display = 'block';
@@ -461,7 +560,7 @@
             updateDayTotal(dayKey);
         }
 
-        // --- 7. CÁC HÀM HỖ TRỢ FORM ---
+        // --- 8. CÁC HÀM HỖ TRỢ FORM ---
         function updateDayTotal(dayKey) {
             const container = document.getElementById(`container_${dayKey}`);
             if(!container) return;
@@ -494,7 +593,7 @@
         }
         function toggleCustomInput(sel) { const inp = sel.parentElement.querySelector('.custom-input'); if(sel.value === '__CUSTOM__') { inp.classList.remove('d-none'); sel.classList.add('d-none'); } else { inp.classList.add('d-none'); sel.classList.remove('d-none'); } }
 
-        // --- 8. LƯU DỮ LIỆU ---
+        // --- 9. LƯU DỮ LIỆU ---
         async function saveDay(dayKey) {
             if(!currentUser) return;
             const container = document.getElementById(`container_${dayKey}`);
@@ -559,18 +658,18 @@
             } catch(e) { alert("Lỗi: " + e.message); }
         }
 
-        // --- 9. ĐỔI TÊN ---
+        // --- 10. ĐỔI TÊN ---
         function openChangeNameModal() {
             document.getElementById('newDisplayName').value = currentUser.displayName || '';
-            document.getElementById('changeNameModal').style.display = 'block';
+            document.getElementById('changeNameModal').style.display = 'flex';
         }
+        
         async function updateMyName() {
             const newName = document.getElementById('newDisplayName').value.trim();
             if(!newName) return alert("Vui lòng nhập tên mới!");
             try {
                 await currentUser.updateProfile({ displayName: newName });
                 await db.collection('users').doc(myUserId).update({ fullname: newName });
-                // Cập nhật tên trong tất cả các tuần đã lưu (nếu cần logic phức tạp hơn, có thể dùng batch)
                 document.getElementById('changeNameModal').style.display = 'none';
                 alert("✅ Đã đổi tên!"); location.reload();
             } catch(e) { alert("Lỗi: " + e.message); }
