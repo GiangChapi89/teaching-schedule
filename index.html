@@ -301,8 +301,10 @@
                 
                 // ✅ BẢO MẬT TUYỆT ĐỐI: Kiểm tra kỹ trước khi gán style
                 setTimeout(() => {
-                    const btn = document.getElementById('changeNameBtn');
-                    if (btn) btn.style.display = 'inline-block';
+                    const changeBtn = document.getElementById('changeNameBtn');
+                    if (changeBtn) {
+                        changeBtn.style.display = 'inline-block';
+                    }
                 }, 100);
 
                 document.getElementById('loginToggleBtn').style.display = 'none';
